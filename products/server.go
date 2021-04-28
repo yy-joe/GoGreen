@@ -24,7 +24,7 @@ func openDB() (db *sql.DB, err error) {
 	}()
 
 	//Use mysql as driverName and the default mysql db as data source name
-	dsn := "root:QQ2kepiting@tcp(127.0.0.1:3306)/GoGreen"
+	dsn := "root:password@tcp(127.0.0.1:3306)/GoGreen"
 	db, err = sql.Open("mysql", dsn)
 	if err != nil {
 		Trace.Fatalln(err.Error())
@@ -138,10 +138,9 @@ func product(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Product successfully added.")
 		}
 	} else if r.Method == "PUT" { //PUT is for creating or updating existing product
-		var newProduct Product
 		// reqBody, err := ioutil.ReadAll(r.Body)
 
-		newProduct = Product{
+		newProduct := Product{
 			ID:         0,
 			Name:       "Prod123",
 			Image:      "",
@@ -169,13 +168,271 @@ func product(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func allBrands(w http.ResponseWriter, r *http.Request) {
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the product database."))
+		Trace.Fatalln("Failed to open the product database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	brands, err := getBrands(db)
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 -Error getting products from database."))
+		return
+	}
+	// json.NewEncoder(w).Encode(productsFromDB)
+	fmt.Println(brands)
+}
+
+func serverGetBrand(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	//open the database
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the brand database."))
+		Trace.Fatalln("Failed to open the brand database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	brand, err := getBrand(db, params["brandid"])
+
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("404 - No brand found."))
+	}
+
+	fmt.Println(brand)
+}
+
+func serverAddBrand(w http.ResponseWriter, r *http.Request) {
+	//open the database
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the brand database."))
+		Trace.Fatalln("Failed to open the brand database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	newBrand := Brand{0, "Brand C", "This is brand c", 0}
+
+	err = addBrand(db, newBrand.Name, newBrand.Description, newBrand.NumberOfProducts)
+
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 -Error updating brand at database."))
+		return
+	}
+
+	fmt.Println("Brand successfully added.")
+}
+
+func serverEditBrand(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	//open the database
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the brand database."))
+		Trace.Fatalln("Failed to open the brand database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	updatedBrand := Brand{0, "Brand C", "This is brand c", 15}
+
+	brandID, _ := strconv.Atoi(params["brandid"])
+
+	err = editBrand(db, updatedBrand.Name, updatedBrand.Description, updatedBrand.NumberOfProducts, brandID)
+
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 -Error updating brand at database."))
+		return
+	}
+}
+
+func serverDeleteBrand(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	//open the database
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the product database."))
+		Trace.Fatalln("Failed to open the product database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	brandID, _ := strconv.Atoi(params["brandid"])
+
+	err = deleteBrand(db, brandID)
+
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 -Error deleting brand from database."))
+		return
+	}
+	fmt.Println("Brand deleted:", brandID)
+}
+
+func allCategories(w http.ResponseWriter, r *http.Request) {
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the category database."))
+		Trace.Fatalln("Failed to open the category database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	categories, err := getCategories(db)
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 -Error getting categories from database."))
+		return
+	}
+	// json.NewEncoder(w).Encode(productsFromDB)
+	fmt.Println(categories)
+}
+
+func serverGetCategory(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	//open the database
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the categories database."))
+		Trace.Fatalln("Failed to open the categories database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	category, err := getCategory(db, params["categoryid"])
+
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("404 - No category found."))
+	}
+
+	fmt.Println(category)
+}
+
+func serverAddCategory(w http.ResponseWriter, r *http.Request) {
+	//open the database
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the product database."))
+		Trace.Fatalln("Failed to open the product database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	newCategory := Category{0, "Category C", "This is category c", 0}
+
+	err = addCategory(db, newCategory.Name, newCategory.Description, newCategory.NumberOfProducts)
+
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 -Error adding category at database."))
+		return
+	}
+
+	fmt.Println("Category successfully added.")
+}
+
+func serverEditCategory(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	//open the database
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the category database."))
+		Trace.Fatalln("Failed to open the category database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	updatedCategory := Category{0, "Category C", "This is category c", 15}
+
+	categoryID, _ := strconv.Atoi(params["categoryid"])
+
+	err = editCategory(db, updatedCategory.Name, updatedCategory.Description, updatedCategory.NumberOfProducts, categoryID)
+
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 -Error updating category at database."))
+		return
+	}
+}
+
+func serverDeleteCategory(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	//open the database
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the category database."))
+		Trace.Fatalln("Failed to open the category database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	categoryID, _ := strconv.Atoi(params["categoryid"])
+
+	err = deleteCategory(db, categoryID)
+
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 -Error deleting category from database."))
+		return
+	}
+	fmt.Println("Category deleted:", categoryID)
+}
+
 func main() {
 
 	router := mux.NewRouter()
 	// router.HandleFunc("/api/v1/", home)
 	router.HandleFunc("/api/v1/products", allproducts)
-	router.HandleFunc("/api/v1/product/{productid}", product).Methods("GET", "PUT", "DELETE")
+	router.HandleFunc("/api/v1/product/{productid}", product).Methods("GET")
+	router.HandleFunc("/api/v1/product/{productid}", product).Methods("PUT")
+	router.HandleFunc("/api/v1/product/{productid}", product).Methods("DELETE")
 	router.HandleFunc("/api/v1/product", product).Methods("POST")
+	router.HandleFunc("/api/v1/brand", serverAddBrand).Methods("POST")
+	router.HandleFunc("/api/v1/brands", allBrands)
+	router.HandleFunc("/api/v1/brand/{brandid}", serverGetBrand).Methods("GET")
+	router.HandleFunc("/api/v1/brand/{brandid}", serverEditBrand).Methods("PUT")
+	router.HandleFunc("/api/v1/brand/{brandid}", serverDeleteBrand).Methods("DELETE")
+	router.HandleFunc("/api/v1/category", serverAddCategory).Methods("POST")
+	router.HandleFunc("/api/v1/categories", allCategories)
+	router.HandleFunc("/api/v1/category/{categoryid}", serverGetCategory).Methods("GET")
+	router.HandleFunc("/api/v1/category/{categoryid}", serverEditCategory).Methods("PUT")
+	router.HandleFunc("/api/v1/category/{categoryid}", serverDeleteCategory).Methods("DELETE")
 
 	fmt.Println("Listening at port 5000")
 	//log.Fatal(http.ListenAndServe(":5000", router))

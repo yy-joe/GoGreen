@@ -64,6 +64,31 @@ func getBrands(db *sql.DB) ([]Brand, error) {
 	return brands, nil
 }
 
+func getBrand(db *sql.DB, brandID string) (Brand, error) {
+	query := fmt.Sprintf("SELECT * FROM Brands WHERE ID = %s", brandID)
+
+	results, err := db.Query(query)
+
+	if err != nil {
+		fmt.Println(err)
+		log.Fatalln(err)
+	}
+
+	var brand Brand
+
+	for results.Next() {
+		err = results.Scan(&brand.ID, &brand.Name, &brand.Description, &brand.NumberOfProducts)
+
+		if err != nil {
+			fmt.Println(err)
+			log.Fatalln(err)
+		}
+	}
+
+	//fmt.Println(brands)
+	return brand, nil
+}
+
 func addBrand(db *sql.DB, Name string, Description string, NumOfProducts int) error {
 	query := fmt.Sprintf("INSERT INTO Brands (Name, Description, Number_Of_Products) VALUES ('%s', '%s', %d)", Name, Description, NumOfProducts)
 
@@ -123,6 +148,31 @@ func getCategories(db *sql.DB) ([]Category, error) {
 
 	//fmt.Println(categories)
 	return categories, nil
+}
+
+func getCategory(db *sql.DB, categoryID string) (Category, error) {
+	query := fmt.Sprintf("SELECT * FROM Categories WHERE ID = %s", categoryID)
+
+	results, err := db.Query(query)
+
+	if err != nil {
+		fmt.Println(err)
+		log.Fatalln(err)
+	}
+
+	var category Category
+
+	for results.Next() {
+		err = results.Scan(&category.ID, &category.Name, &category.Description, &category.NumberOfProducts)
+
+		if err != nil {
+			fmt.Println(err)
+			log.Fatalln(err)
+		}
+	}
+
+	//fmt.Println(brands)
+	return category, nil
 }
 
 func addCategory(db *sql.DB, Name string, Description string, NumOfProducts int) error {
@@ -250,7 +300,7 @@ func deleteProducts(db *sql.DB, ID int) error {
 
 func main_queries() {
 	//Use mysql as driverName and a valid DSN as data source name
-	db, err := sql.Open("mysql", "root:QQ2kepiting@tcp(127.0.0.1:3306)/GoGreen")
+	db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/GoGreen")
 
 	//handle error
 	if err != nil {
