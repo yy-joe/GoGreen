@@ -115,18 +115,22 @@ func product(w http.ResponseWriter, r *http.Request) {
 			// }
 
 			newProduct = Product{
-				ID:         0,
-				Name:       "Prod123",
-				Image:      "",
-				Details:    "Test product",
-				DateAdded:  "2021-04-28",
-				Price:      10.00,
-				Quantity:   50,
-				CategoryID: 2,
-				BrandID:    2,
+				ID:           0,
+				Name:         "Prod123",
+				Image:        "",
+				DescShort:    "Test product",
+				DescLong:     "Long Test product",
+				DateCreated:  "",
+				DateModified: "",
+				Price:        10.00,
+				Quantity:     50,
+				Condition:    "New",
+				CategoryID:   1,
+				BrandID:      1,
+				Status:       "Live",
 			}
 			//check if product exists; add only if product does not exist
-			err := addProducts(db, newProduct.Name, newProduct.Image, newProduct.Details, newProduct.DateAdded, newProduct.Price, newProduct.Quantity, newProduct.CategoryID, newProduct.BrandID)
+			err := addProducts(db, newProduct.Name, newProduct.Image, newProduct.DescShort, newProduct.DescLong, newProduct.Price, newProduct.Quantity, newProduct.Condition, newProduct.CategoryID, newProduct.BrandID, newProduct.Status)
 			if err != nil {
 				Trace.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
@@ -141,20 +145,24 @@ func product(w http.ResponseWriter, r *http.Request) {
 		// reqBody, err := ioutil.ReadAll(r.Body)
 
 		newProduct := Product{
-			ID:         0,
-			Name:       "Prod123",
-			Image:      "",
-			Details:    "Test product",
-			DateAdded:  "2021-04-28",
-			Price:      8.00,
-			Quantity:   150,
-			CategoryID: 2,
-			BrandID:    2,
+			ID:           0,
+			Name:         "Prod123",
+			Image:        "",
+			DescShort:    "Test product",
+			DescLong:     "Long Test product",
+			DateCreated:  "",
+			DateModified: "",
+			Price:        20.00,
+			Quantity:     30,
+			Condition:    "New",
+			CategoryID:   1,
+			BrandID:      1,
+			Status:       "Sold Out",
 		}
 
 		//product already exists, update product
 		productID, _ := strconv.Atoi(params["productid"])
-		err := editProducts(db, newProduct.Name, newProduct.Image, newProduct.Details, newProduct.DateAdded, newProduct.Price, newProduct.Quantity, newProduct.CategoryID, newProduct.BrandID, productID)
+		err := editProducts(db, newProduct.Name, newProduct.Image, newProduct.DescShort, newProduct.DescLong, newProduct.Price, newProduct.Quantity, newProduct.Condition, newProduct.CategoryID, newProduct.BrandID, newProduct.Status, productID)
 
 		if err != nil {
 			Trace.Println(err)
@@ -415,6 +423,8 @@ func serverDeleteCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	// main_queries()
 
 	router := mux.NewRouter()
 	// router.HandleFunc("/api/v1/", home)

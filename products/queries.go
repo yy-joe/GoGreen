@@ -13,15 +13,19 @@ import (
 // getCategory, editCategory, addCategory, deleteCategory
 
 type Product struct {
-	ID         int
-	Name       string
-	Image      string
-	Details    string
-	DateAdded  string
-	Price      float64
-	Quantity   int
-	CategoryID int
-	BrandID    int
+	ID           int
+	Name         string
+	Image        string
+	DescShort    string
+	DescLong     string
+	DateCreated  string
+	DateModified string
+	Price        float64
+	Quantity     int
+	Condition    string
+	CategoryID   int
+	BrandID      int
+	Status       string
 }
 
 type Brand struct {
@@ -222,7 +226,7 @@ func getProducts(db *sql.DB) ([]Product, error) {
 	for results.Next() {
 		var product Product
 
-		err = results.Scan(&product.ID, &product.Name, &product.Image, &product.Details, &product.DateAdded, &product.Price, &product.Quantity, &product.CategoryID, &product.BrandID)
+		err = results.Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
 
 		if err != nil {
 			fmt.Println(err)
@@ -250,7 +254,7 @@ func getProduct(db *sql.DB, productID string) ([]Product, error) {
 	for results.Next() {
 		var product Product
 
-		err = results.Scan(&product.ID, &product.Name, &product.Image, &product.Details, &product.DateAdded, &product.Price, &product.Quantity, &product.CategoryID, &product.BrandID)
+		err = results.Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
 
 		if err != nil {
 			fmt.Println("queries: line 205: ", err)
@@ -264,20 +268,21 @@ func getProduct(db *sql.DB, productID string) ([]Product, error) {
 	return products, nil
 }
 
-func addProducts(db *sql.DB, Name string, Image string, Details string, DateAdded string, Price float64, Quantity int, CategoryID int, BrandID int) error {
-	query := fmt.Sprintf("INSERT INTO Products (Name, Image, Details, Date_Added, Price, Quantity, Category_ID, Brand_ID) VALUES ('%s', '%s', '%s', '%s', %v, %d, %d, %d)", Name, Image, Details, DateAdded, Price, Quantity, CategoryID, BrandID)
+func addProducts(db *sql.DB, Name string, Image string, DescShort string, DescLong string, Price float64, Quantity int, Condition string, CategoryID int, BrandID int, Status string) error {
+	query := fmt.Sprintf("INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, `Condition`, Category_ID, Brand_ID, Status) VALUES ('%s', '%s', '%s', '%s', curdate(), curdate(), %v, %d, '%s', %d, %d, '%s')", Name, Image, DescShort, DescLong, Price, Quantity, Condition, CategoryID, BrandID, Status)
 
 	_, err := db.Query(query)
 
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 		log.Fatalln(err)
 	}
+
 	return nil
 }
 
-func editProducts(db *sql.DB, Name string, Image string, Details string, DateAdded string, Price float64, Quantity int, CategoryID int, BrandID int, ID int) error {
-	query := fmt.Sprintf("UPDATE Products SET Name='%s', Image='%s', Details='%s', Date_Added='%s', Price=%.2f, Quantity=%d, Category_ID=%d, Brand_ID=%d WHERE ID=%d", Name, Image, Details, DateAdded, Price, Quantity, CategoryID, BrandID, ID)
+func editProducts(db *sql.DB, Name string, Image string, DescShort string, DescLong string, Price float64, Quantity int, Condition string, CategoryID int, BrandID int, Status string, ID int) error {
+	query := fmt.Sprintf("UPDATE Products SET Name='%s', Image='%s', Desc_Short='%s', Desc_Long='%s', Date_Modified=curdate(), Price=%.2f, Quantity=%d, `Condition`='%s', Category_ID=%d, Brand_ID=%d, Status='%s' WHERE ID=%d", Name, Image, DescShort, DescLong, Price, Quantity, Condition, CategoryID, BrandID, Status, ID)
 
 	_, err := db.Query(query)
 
@@ -313,9 +318,9 @@ func main_queries() {
 
 	fmt.Println("Database opened")
 
-	addBrand(db, "Brand A2", "This is Brand A2", 130)
-	addCategory(db, "Category A0002", "This is category A0001", 30)
-	addProducts(db, "Bag", "nil", "This is a bag", "2021-04-27", 20.50, 5, 2, 2)
+	// addBrand(db, "Brand A", "This is Brand A", 0)
+	// addCategory(db, "Category A", "This is category A", 0)
+	addProducts(db, "Bag", "nil", "This is a bag", "This is a very very very big bag.", 20.50, 5, "New", 1, 1, "Live")
 
 	// editProducts(db, "Bag", "nil", "This is a bag", "2021-04-27", 20.50, 5, 1, 1, 1)
 	// deleteProducts(db, 1)
