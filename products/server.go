@@ -32,6 +32,72 @@ func openDB() (db *sql.DB, err error) {
 	return
 }
 
+func activeProducts(w http.ResponseWriter, r *http.Request) {
+	//open the database
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the product database."))
+		Trace.Fatalln("Failed to open the product database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	products, err := getProductsByStatus(db, "active")
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 -Error getting products from database."))
+		return
+	}
+	// json.NewEncoder(w).Encode(productsFromDB)
+	fmt.Println(products)
+}
+
+func soldoutProducts(w http.ResponseWriter, r *http.Request) {
+	//open the database
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the product database."))
+		Trace.Fatalln("Failed to open the product database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	products, err := getProductsByStatus(db, "soldout")
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 -Error getting products from database."))
+		return
+	}
+	// json.NewEncoder(w).Encode(productsFromDB)
+	fmt.Println(products)
+}
+
+func unlistedProducts(w http.ResponseWriter, r *http.Request) {
+	//open the database
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the product database."))
+		Trace.Fatalln("Failed to open the product database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	products, err := getProductsByStatus(db, "unlisted")
+	if err != nil {
+		Trace.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 -Error getting products from database."))
+		return
+	}
+	// json.NewEncoder(w).Encode(productsFromDB)
+	fmt.Println(products)
+}
+
 func allproducts(w http.ResponseWriter, r *http.Request) {
 
 	//open the database
@@ -232,9 +298,9 @@ func serverAddBrand(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	fmt.Println("The database is opened:", db)
 
-	newBrand := Brand{0, "Brand C", "This is brand c", 0}
+	newBrand := Brand{0, "Brand C", "This is brand c"}
 
-	err = addBrand(db, newBrand.Name, newBrand.Description, newBrand.NumberOfProducts)
+	err = addBrand(db, newBrand.Name, newBrand.Description)
 
 	if err != nil {
 		Trace.Println(err)
@@ -259,11 +325,11 @@ func serverEditBrand(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	fmt.Println("The database is opened:", db)
 
-	updatedBrand := Brand{0, "Brand C", "This is brand c", 15}
+	updatedBrand := Brand{0, "Brand C", "This is brand c"}
 
 	brandID, _ := strconv.Atoi(params["brandid"])
 
-	err = editBrand(db, updatedBrand.Name, updatedBrand.Description, updatedBrand.NumberOfProducts, brandID)
+	err = editBrand(db, updatedBrand.Name, updatedBrand.Description, brandID)
 
 	if err != nil {
 		Trace.Println(err)
@@ -355,9 +421,9 @@ func serverAddCategory(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	fmt.Println("The database is opened:", db)
 
-	newCategory := Category{0, "Category C", "This is category c", 0}
+	newCategory := Category{0, "Category C", "This is category c"}
 
-	err = addCategory(db, newCategory.Name, newCategory.Description, newCategory.NumberOfProducts)
+	err = addCategory(db, newCategory.Name, newCategory.Description)
 
 	if err != nil {
 		Trace.Println(err)
@@ -382,11 +448,11 @@ func serverEditCategory(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	fmt.Println("The database is opened:", db)
 
-	updatedCategory := Category{0, "Category C", "This is category c", 15}
+	updatedCategory := Category{0, "Category C", "This is category c"}
 
 	categoryID, _ := strconv.Atoi(params["categoryid"])
 
-	err = editCategory(db, updatedCategory.Name, updatedCategory.Description, updatedCategory.NumberOfProducts, categoryID)
+	err = editCategory(db, updatedCategory.Name, updatedCategory.Description, categoryID)
 
 	if err != nil {
 		Trace.Println(err)
@@ -429,6 +495,9 @@ func main() {
 	router := mux.NewRouter()
 	// router.HandleFunc("/api/v1/", home)
 	router.HandleFunc("/api/v1/products", allproducts)
+	router.HandleFunc("/api/v1/products/active", activeProducts)
+	router.HandleFunc("/api/v1/products/soldout", soldoutProducts)
+	router.HandleFunc("/api/v1/products/unlisted", unlistedProducts)
 	router.HandleFunc("/api/v1/product/{productid}", product).Methods("GET")
 	router.HandleFunc("/api/v1/product/{productid}", product).Methods("PUT")
 	router.HandleFunc("/api/v1/product/{productid}", product).Methods("DELETE")

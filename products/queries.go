@@ -29,17 +29,15 @@ type Product struct {
 }
 
 type Brand struct {
-	ID               int
-	Name             string
-	Description      string
-	NumberOfProducts int
+	ID          int
+	Name        string
+	Description string
 }
 
 type Category struct {
-	ID               int
-	Name             string
-	Description      string
-	NumberOfProducts int
+	ID          int
+	Name        string
+	Description string
 }
 
 func getBrands(db *sql.DB) ([]Brand, error) {
@@ -54,7 +52,7 @@ func getBrands(db *sql.DB) ([]Brand, error) {
 
 	for results.Next() {
 		var brand Brand
-		err = results.Scan(&brand.ID, &brand.Name, &brand.Description, &brand.NumberOfProducts)
+		err = results.Scan(&brand.ID, &brand.Name, &brand.Description)
 
 		if err != nil {
 			fmt.Println(err)
@@ -81,7 +79,7 @@ func getBrand(db *sql.DB, brandID string) (Brand, error) {
 	var brand Brand
 
 	for results.Next() {
-		err = results.Scan(&brand.ID, &brand.Name, &brand.Description, &brand.NumberOfProducts)
+		err = results.Scan(&brand.ID, &brand.Name, &brand.Description)
 
 		if err != nil {
 			fmt.Println(err)
@@ -93,8 +91,8 @@ func getBrand(db *sql.DB, brandID string) (Brand, error) {
 	return brand, nil
 }
 
-func addBrand(db *sql.DB, Name string, Description string, NumOfProducts int) error {
-	query := fmt.Sprintf("INSERT INTO Brands (Name, Description, Number_Of_Products) VALUES ('%s', '%s', %d)", Name, Description, NumOfProducts)
+func addBrand(db *sql.DB, Name string, Description string) error {
+	query := fmt.Sprintf("INSERT INTO Brands (Name, Description) VALUES ('%s', '%s')", Name, Description)
 
 	_, err := db.Query(query)
 
@@ -105,8 +103,8 @@ func addBrand(db *sql.DB, Name string, Description string, NumOfProducts int) er
 	return nil
 }
 
-func editBrand(db *sql.DB, Name string, Description string, NumOfProducts int, ID int) error {
-	query := fmt.Sprintf("UPDATE Brands SET Name='%s', Description='%s', Number_Of_Products=%d WHERE ID=%d", Name, Description, NumOfProducts, ID)
+func editBrand(db *sql.DB, Name string, Description string, ID int) error {
+	query := fmt.Sprintf("UPDATE Brands SET Name='%s', Description='%s' WHERE ID=%d", Name, Description, ID)
 
 	_, err := db.Query(query)
 
@@ -140,7 +138,7 @@ func getCategories(db *sql.DB) ([]Category, error) {
 	for results.Next() {
 		var category Category
 
-		err = results.Scan(&category.ID, &category.Name, &category.Description, &category.NumberOfProducts)
+		err = results.Scan(&category.ID, &category.Name, &category.Description)
 
 		if err != nil {
 			fmt.Println(err)
@@ -167,7 +165,7 @@ func getCategory(db *sql.DB, categoryID string) (Category, error) {
 	var category Category
 
 	for results.Next() {
-		err = results.Scan(&category.ID, &category.Name, &category.Description, &category.NumberOfProducts)
+		err = results.Scan(&category.ID, &category.Name, &category.Description)
 
 		if err != nil {
 			fmt.Println(err)
@@ -179,8 +177,8 @@ func getCategory(db *sql.DB, categoryID string) (Category, error) {
 	return category, nil
 }
 
-func addCategory(db *sql.DB, Name string, Description string, NumOfProducts int) error {
-	query := fmt.Sprintf("INSERT INTO Categories (Name, Description, Number_Of_Products) VALUES ('%s', '%s', %d)", Name, Description, NumOfProducts)
+func addCategory(db *sql.DB, Name string, Description string) error {
+	query := fmt.Sprintf("INSERT INTO Categories (Name, Description) VALUES ('%s', '%s')", Name, Description)
 
 	_, err := db.Query(query)
 
@@ -191,8 +189,8 @@ func addCategory(db *sql.DB, Name string, Description string, NumOfProducts int)
 	return nil
 }
 
-func editCategory(db *sql.DB, Name string, Description string, NumOfProducts int, ID int) error {
-	query := fmt.Sprintf("UPDATE Categories SET Name='%s', Description='%s', Number_Of_Products=%d WHERE ID=%d", Name, Description, NumOfProducts, ID)
+func editCategory(db *sql.DB, Name string, Description string, ID int) error {
+	query := fmt.Sprintf("UPDATE Categories SET Name='%s', Description='%s' WHERE ID=%d", Name, Description, ID)
 
 	_, err := db.Query(query)
 
@@ -215,6 +213,34 @@ func deleteCategory(db *sql.DB, ID int) error {
 
 func getProducts(db *sql.DB) ([]Product, error) {
 	results, err := db.Query("SELECT * FROM GoGreen.Products")
+
+	if err != nil {
+		fmt.Println(err)
+		log.Fatalln()
+	}
+
+	var products []Product
+
+	for results.Next() {
+		var product Product
+
+		err = results.Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
+
+		if err != nil {
+			fmt.Println(err)
+			log.Fatalln(err)
+		}
+
+		products = append(products, product)
+	}
+
+	//fmt.Println(products)
+	return products, nil
+}
+
+func getProductsByStatus(db *sql.DB, status string) ([]Product, error) {
+	query := fmt.Sprintf("SELECT * FROM GoGreen.Products WHERE Status='%s'", status)
+	results, err := db.Query(query)
 
 	if err != nil {
 		fmt.Println(err)
