@@ -18,7 +18,6 @@ CREATE TABLE `Categories` (
   `ID` int NOT NULL auto_increment,
   `Name` varchar(200) NOT NULL,
   `Description` varchar(500),
-  `Number_Of_Products` int not null,
   Primary Key (`ID`)
 );
 
@@ -26,7 +25,6 @@ CREATE TABLE `Brands` (
   `ID` int NOT NULL auto_increment,
   `Name` varchar(200) NOT NULL,
   `Description` varchar(500),
-  `Number_Of_Products` int not null,
   Primary Key (`ID`)
 );
 
