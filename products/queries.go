@@ -44,7 +44,6 @@ func getBrands(db *sql.DB) ([]Brand, error) {
 	results, err := db.Query("SELECT * FROM GoGreen.Brands")
 
 	if err != nil {
-		fmt.Println(err)
 		log.Fatalln(err)
 	}
 
@@ -55,81 +54,62 @@ func getBrands(db *sql.DB) ([]Brand, error) {
 		err = results.Scan(&brand.ID, &brand.Name, &brand.Description)
 
 		if err != nil {
-			fmt.Println(err)
 			log.Fatalln(err)
 		}
 
 		brands = append(brands, brand)
 	}
-
-	//fmt.Println(brands)
-	return brands, nil
+	return brands, err
 }
 
 func getBrand(db *sql.DB, brandID string) (Brand, error) {
-	query := fmt.Sprintf("SELECT * FROM Brands WHERE ID = %s", brandID)
-
-	results, err := db.Query(query)
-
-	if err != nil {
-		fmt.Println(err)
-		log.Fatalln(err)
-	}
-
 	var brand Brand
 
-	for results.Next() {
-		err = results.Scan(&brand.ID, &brand.Name, &brand.Description)
+	err := db.QueryRow("SELECT * FROM Brands WHERE ID=?", brandID).Scan(&brand.ID, &brand.Name, &brand.Description)
 
-		if err != nil {
-			fmt.Println(err)
-			log.Fatalln(err)
-		}
+	if err != nil {
+		log.Fatalln(err)
 	}
-
-	//fmt.Println(brands)
-	return brand, nil
+	return brand, err
 }
 
 func addBrand(db *sql.DB, Name string, Description string) error {
 	query := fmt.Sprintf("INSERT INTO Brands (Name, Description) VALUES ('%s', '%s')", Name, Description)
 
-	_, err := db.Query(query)
+	_, err := db.Exec(query)
 
 	if err != nil {
-		fmt.Println(err)
 		log.Fatalln(err)
 	}
-	return nil
+	return err
 }
 
 func editBrand(db *sql.DB, Name string, Description string, ID int) error {
 	query := fmt.Sprintf("UPDATE Brands SET Name='%s', Description='%s' WHERE ID=%d", Name, Description, ID)
 
-	_, err := db.Query(query)
+	_, err := db.Exec(query)
 
 	if err != nil {
-		fmt.Println(err)
 		log.Fatalln(err)
 	}
-	return nil
+	return err
 }
 
 func deleteBrand(db *sql.DB, ID int) error {
 	query := fmt.Sprintf("DELETE FROM Brands WHERE ID='%d'", ID)
-	_, err := db.Query(query)
+
+	_, err := db.Exec(query)
+
 	if err != nil {
-		fmt.Println(err)
 		log.Fatalln(err)
 	}
-	return nil
+	return err
 }
 
 func getCategories(db *sql.DB) ([]Category, error) {
 	results, err := db.Query("SELECT * FROM GoGreen.Categories")
 
 	if err != nil {
-		fmt.Println(err)
 		log.Fatalln(err)
 	}
 
@@ -141,82 +121,65 @@ func getCategories(db *sql.DB) ([]Category, error) {
 		err = results.Scan(&category.ID, &category.Name, &category.Description)
 
 		if err != nil {
-			fmt.Println(err)
 			log.Fatalln(err)
 		}
 
 		categories = append(categories, category)
 	}
-
-	//fmt.Println(categories)
-	return categories, nil
+	return categories, err
 }
 
 func getCategory(db *sql.DB, categoryID string) (Category, error) {
-	query := fmt.Sprintf("SELECT * FROM Categories WHERE ID = %s", categoryID)
+	var category Category
 
-	results, err := db.Query(query)
+	err := db.QueryRow("SELECT * FROM Categories WHERE ID=?", categoryID).Scan(&category.ID, &category.Name, &category.Description)
 
 	if err != nil {
-		fmt.Println(err)
 		log.Fatalln(err)
 	}
 
-	var category Category
-
-	for results.Next() {
-		err = results.Scan(&category.ID, &category.Name, &category.Description)
-
-		if err != nil {
-			fmt.Println(err)
-			log.Fatalln(err)
-		}
-	}
-
-	//fmt.Println(brands)
-	return category, nil
+	return category, err
 }
 
 func addCategory(db *sql.DB, Name string, Description string) error {
 	query := fmt.Sprintf("INSERT INTO Categories (Name, Description) VALUES ('%s', '%s')", Name, Description)
 
-	_, err := db.Query(query)
+	_, err := db.Exec(query)
 
 	if err != nil {
-		fmt.Println(err)
 		log.Fatalln(err)
 	}
-	return nil
+	return err
 }
 
 func editCategory(db *sql.DB, Name string, Description string, ID int) error {
 	query := fmt.Sprintf("UPDATE Categories SET Name='%s', Description='%s' WHERE ID=%d", Name, Description, ID)
 
-	_, err := db.Query(query)
+	_, err := db.Exec(query)
 
 	if err != nil {
-		fmt.Println(err)
 		log.Fatalln(err)
 	}
-	return nil
+	return err
 }
 
 func deleteCategory(db *sql.DB, ID int) error {
 	query := fmt.Sprintf("DELETE FROM Categories WHERE ID='%d'", ID)
-	_, err := db.Query(query)
+
+	_, err := db.Exec(query)
+
 	if err != nil {
-		fmt.Println(err)
 		log.Fatalln(err)
 	}
-	return nil
+
+	return err
 }
 
 func getProducts(db *sql.DB) ([]Product, error) {
 	results, err := db.Query("SELECT * FROM GoGreen.Products")
 
 	if err != nil {
-		fmt.Println(err)
-		log.Fatalln()
+		log.Fatalln(err)
 	}
 
 	var products []Product
@@ -227,24 +190,22 @@ func getProducts(db *sql.DB) ([]Product, error) {
 		err = results.Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
 
 		if err != nil {
-			fmt.Println(err)
 			log.Fatalln(err)
 		}
 
 		products = append(products, product)
 	}
 
-	//fmt.Println(products)
-	return products, nil
+	return products, err
 }
 
 func getProductsByStatus(db *sql.DB, status string) ([]Product, error) {
 	query := fmt.Sprintf("SELECT * FROM GoGreen.Products WHERE Status='%s'", status)
+
 	results, err := db.Query(query)
 
 	if err != nil {
-		fmt.Println(err)
-		log.Fatalln()
+		log.Fatalln(err)
 	}
 
 	var products []Product
@@ -255,78 +216,61 @@ func getProductsByStatus(db *sql.DB, status string) ([]Product, error) {
 		err = results.Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
 
 		if err != nil {
-			fmt.Println(err)
 			log.Fatalln(err)
 		}
 
 		products = append(products, product)
 	}
 
-	//fmt.Println(products)
-	return products, nil
+	return products, err
 }
 
-func getProduct(db *sql.DB, productID string) ([]Product, error) {
-	query := fmt.Sprintf("SELECT * FROM Products WHERE ID='%s'", productID)
-	results, err := db.Query(query)
+func getProduct(db *sql.DB, productID string) (Product, error) {
+	var product Product
+
+	err := db.QueryRow("SELECT * FROM Products WHERE ID=?", productID).Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
 
 	if err != nil {
-		fmt.Println("queries: line 193: ", err)
-		log.Fatalln()
+		log.Fatalln(err)
 	}
 
-	var products []Product
-
-	for results.Next() {
-		var product Product
-
-		err = results.Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
-
-		if err != nil {
-			fmt.Println("queries: line 205: ", err)
-			log.Fatalln(err)
-		}
-
-		products = append(products, product)
-	}
-
-	//fmt.Println(products)
-	return products, nil
+	return product, err
 }
 
 func addProducts(db *sql.DB, Name string, Image string, DescShort string, DescLong string, Price float64, Quantity int, Condition string, CategoryID int, BrandID int, Status string) error {
 	query := fmt.Sprintf("INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, `Condition`, Category_ID, Brand_ID, Status) VALUES ('%s', '%s', '%s', '%s', curdate(), curdate(), %v, %d, '%s', %d, %d, '%s')", Name, Image, DescShort, DescLong, Price, Quantity, Condition, CategoryID, BrandID, Status)
 
-	_, err := db.Query(query)
+	_, err := db.Exec(query)
 
 	if err != nil {
-		// fmt.Println(err)
 		log.Fatalln(err)
 	}
 
-	return nil
+	return err
 }
 
 func editProducts(db *sql.DB, Name string, Image string, DescShort string, DescLong string, Price float64, Quantity int, Condition string, CategoryID int, BrandID int, Status string, ID int) error {
 	query := fmt.Sprintf("UPDATE Products SET Name='%s', Image='%s', Desc_Short='%s', Desc_Long='%s', Date_Modified=curdate(), Price=%.2f, Quantity=%d, `Condition`='%s', Category_ID=%d, Brand_ID=%d, Status='%s' WHERE ID=%d", Name, Image, DescShort, DescLong, Price, Quantity, Condition, CategoryID, BrandID, Status, ID)
 
-	_, err := db.Query(query)
+	_, err := db.Exec(query)
 
 	if err != nil {
-		fmt.Println(err)
 		log.Fatalln(err)
 	}
-	return nil
+
+	return err
 }
 
 func deleteProducts(db *sql.DB, ID int) error {
 	query := fmt.Sprintf("DELETE FROM Products WHERE ID='%d'", ID)
-	_, err := db.Query(query)
+
+	_, err := db.Exec(query)
+
 	if err != nil {
-		fmt.Println(err)
 		log.Fatalln(err)
 	}
-	return nil
+
+	return err
 }
 
 func main_queries() {
@@ -344,9 +288,9 @@ func main_queries() {
 
 	fmt.Println("Database opened")
 
-	// addBrand(db, "Brand A", "This is Brand A", 0)
-	// addCategory(db, "Category A", "This is category A", 0)
-	addProducts(db, "Bag", "nil", "This is a bag", "This is a very very very big bag.", 20.50, 5, "New", 1, 1, "Live")
+	// addBrand(db, "Brand A", "This is Brand A")
+	// addCategory(db, "Category A", "This is category A")
+	// addProducts(db, "Bag", "nil", "This is a bag", "This is a very very very big bag.", 20.50, 5, "New", 2, 3, "Live")
 
 	// editProducts(db, "Bag", "nil", "This is a bag", "2021-04-27", 20.50, 5, 1, 1, 1)
 	// deleteProducts(db, 1)

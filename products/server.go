@@ -191,8 +191,8 @@ func product(w http.ResponseWriter, r *http.Request) {
 				Price:        10.00,
 				Quantity:     50,
 				Condition:    "New",
-				CategoryID:   1,
-				BrandID:      1,
+				CategoryID:   2,
+				BrandID:      3,
 				Status:       "Live",
 			}
 			//check if product exists; add only if product does not exist
@@ -221,8 +221,8 @@ func product(w http.ResponseWriter, r *http.Request) {
 			Price:        20.00,
 			Quantity:     30,
 			Condition:    "New",
-			CategoryID:   1,
-			BrandID:      1,
+			CategoryID:   2,
+			BrandID:      3,
 			Status:       "Sold Out",
 		}
 
