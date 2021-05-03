@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Management Page</title>
+</head>
+<body>
+<h1>My Products</h1>
+
+<table>
+{{range .}} 
+<tr>
+    <td><a href="/api/v1/admin/product/{{.ID}}">{{.Name}}</a></td>
+    <td>{{.DescShort}}</td>
+    <td>{{.DescLong}}</td>
+    <td>{{.DateCreated}}</td>
+    <td>{{.DateModified}}</td>
+    <td>{{.Price}}</td>
+    <td>{{.Quantity}}</td>
+    <td>{{.Condition}}</td>
+    <td>{{.CategoryID}}</td>
+    <td>{{.BrandID}}</td>
+    <td>{{.Status}}</td>
+
+</tr>
+{{end}}
+</table>
+
+</body>
+</html>

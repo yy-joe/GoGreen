@@ -2,17 +2,25 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
+	"text/template"
 
 	"github.com/gorilla/mux"
 )
 
 var (
+	tpl   *template.Template
 	Trace *log.Logger //Prints execution status to stdout, for debugging purposes
 )
+
+func init() {
+	tpl = template.Must(template.ParseGlob("templates/*"))
+}
 
 func openDB() (db *sql.DB, err error) {
 	defer func() {
@@ -117,8 +125,8 @@ func allproducts(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("500 -Error getting products from database."))
 		return
 	}
-	// json.NewEncoder(w).Encode(productsFromDB)
-	fmt.Println(products)
+	json.NewEncoder(w).Encode(products)
+	// fmt.Println(products)
 }
 
 func product(w http.ResponseWriter, r *http.Request) {
@@ -142,7 +150,7 @@ func product(w http.ResponseWriter, r *http.Request) {
 		} else {
 			//w.WriteHeader(http.StatusOK)
 			//w.Write([]byte("200 - Found requested product."))
-			//json.NewEncoder(w).Encode(product)
+			json.NewEncoder(w).Encode(product)
 			fmt.Println(product)
 		}
 	} else if r.Method == "DELETE" {
@@ -164,7 +172,7 @@ func product(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "POST" {
 		//read the string sent to the service
 		var newProduct Product
-		// reqBody, err := ioutil.ReadAll(r.Body)
+		reqBody, err := ioutil.ReadAll(r.Body)
 
 		if err != nil {
 			w.WriteHeader(http.StatusUnprocessableEntity)
@@ -172,7 +180,7 @@ func product(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			//convert JSON to object
-			// json.Unmarshal(reqBody, &newProduct)
+			json.Unmarshal(reqBody, &newProduct)
 
 			// if newProduct.Name == "" {
 			// 	w.WriteHeader(http.StatusUnprocessableEntity)
@@ -180,21 +188,22 @@ func product(w http.ResponseWriter, r *http.Request) {
 			// 	return
 			// }
 
-			newProduct = Product{
-				ID:           0,
-				Name:         "Prod123",
-				Image:        "",
-				DescShort:    "Test product",
-				DescLong:     "Long Test product",
-				DateCreated:  "",
-				DateModified: "",
-				Price:        10.00,
-				Quantity:     50,
-				Condition:    "New",
-				CategoryID:   2,
-				BrandID:      3,
-				Status:       "Live",
-			}
+			// newProduct = Product{
+			// 	ID:           0,
+			// 	Name:         "Prod123",
+			// 	Image:        "",
+			// 	DescShort:    "Test product",
+			// 	DescLong:     "Long Test product",
+			// 	DateCreated:  "",
+			// 	DateModified: "",
+			// 	Price:        10.00,
+			// 	Quantity:     50,
+			// 	Condition:    "New",
+			// 	CategoryID:   2,
+			// 	BrandID:      3,
+			// 	Status:       "Live",
+			// }
+
 			//check if product exists; add only if product does not exist
 			err := addProducts(db, newProduct.Name, newProduct.Image, newProduct.DescShort, newProduct.DescLong, newProduct.Price, newProduct.Quantity, newProduct.Condition, newProduct.CategoryID, newProduct.BrandID, newProduct.Status)
 			if err != nil {
@@ -259,7 +268,7 @@ func allBrands(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("500 -Error getting products from database."))
 		return
 	}
-	// json.NewEncoder(w).Encode(productsFromDB)
+	json.NewEncoder(w).Encode(brands)
 	fmt.Println(brands)
 }
 
@@ -382,7 +391,7 @@ func allCategories(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("500 -Error getting categories from database."))
 		return
 	}
-	// json.NewEncoder(w).Encode(productsFromDB)
+	json.NewEncoder(w).Encode(categories)
 	fmt.Println(categories)
 }
 
@@ -494,24 +503,35 @@ func main() {
 
 	router := mux.NewRouter()
 	// router.HandleFunc("/api/v1/", home)
-	router.HandleFunc("/api/v1/products", allproducts)
-	router.HandleFunc("/api/v1/products/active", activeProducts)
-	router.HandleFunc("/api/v1/products/soldout", soldoutProducts)
-	router.HandleFunc("/api/v1/products/unlisted", unlistedProducts)
-	router.HandleFunc("/api/v1/product/{productid}", product).Methods("GET")
-	router.HandleFunc("/api/v1/product/{productid}", product).Methods("PUT")
-	router.HandleFunc("/api/v1/product/{productid}", product).Methods("DELETE")
-	router.HandleFunc("/api/v1/product", product).Methods("POST")
-	router.HandleFunc("/api/v1/brand", serverAddBrand).Methods("POST")
-	router.HandleFunc("/api/v1/brands", allBrands)
-	router.HandleFunc("/api/v1/brand/{brandid}", serverGetBrand).Methods("GET")
-	router.HandleFunc("/api/v1/brand/{brandid}", serverEditBrand).Methods("PUT")
-	router.HandleFunc("/api/v1/brand/{brandid}", serverDeleteBrand).Methods("DELETE")
-	router.HandleFunc("/api/v1/category", serverAddCategory).Methods("POST")
-	router.HandleFunc("/api/v1/categories", allCategories)
-	router.HandleFunc("/api/v1/category/{categoryid}", serverGetCategory).Methods("GET")
-	router.HandleFunc("/api/v1/category/{categoryid}", serverEditCategory).Methods("PUT")
-	router.HandleFunc("/api/v1/category/{categoryid}", serverDeleteCategory).Methods("DELETE")
+	router.HandleFunc("/api/v1/admin/products", allproducts)
+	router.HandleFunc("/api/v1/admin/products/active", activeProducts)
+	router.HandleFunc("/api/v1/admin/products/soldout", soldoutProducts)
+	router.HandleFunc("/api/v1/admin/products/unlisted", unlistedProducts)
+	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("GET")
+	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("PUT")
+	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("DELETE")
+	router.HandleFunc("/api/v1/admin/product", product).Methods("POST")
+
+	router.HandleFunc("/api/v1/admin/brand", serverAddBrand).Methods("POST")
+	router.HandleFunc("/api/v1/admin/brands", allBrands)
+	router.HandleFunc("/api/v1/admin/brand/{brandid}", serverGetBrand).Methods("GET")
+	router.HandleFunc("/api/v1/admin/brand/{brandid}", serverEditBrand).Methods("PUT")
+	router.HandleFunc("/api/v1/admin/brand/{brandid}", serverDeleteBrand).Methods("DELETE")
+
+	router.HandleFunc("/api/v1/admin/category", serverAddCategory).Methods("POST")
+	router.HandleFunc("/api/v1/admin/categories", allCategories)
+	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverGetCategory).Methods("GET")
+	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverEditCategory).Methods("PUT")
+	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverDeleteCategory).Methods("DELETE")
+
+	//handle functions for UI
+	//UI URLs for Product Management (Admin)
+	router.HandleFunc("/products/all", prodMain)
+	// router.HandleFunc("/products/active", prodActive)
+	// router.HandleFunc("/products/soldout", prodSoldout)
+	// router.HandleFunc("/products/unlisted", prodUnlisted)
+	// router.HandleFunc("/product/{productid}", prodDetail)
+	router.HandleFunc("/product/new", prodDetail)
 
 	fmt.Println("Listening at port 5000")
 	//log.Fatal(http.ListenAndServe(":5000", router))
