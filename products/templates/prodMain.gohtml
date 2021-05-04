@@ -8,6 +8,20 @@
 <h1>My Products</h1>
 
 <table>
+<tr>
+    <td><h3><a href="/products/all?sortby=Name">Product Name</a></h3></td>
+    <td><h3>Short Description</h3></td>
+    <td><h3>Long Description</h3></td>
+    <td><h3><a href="/products/all?sortby=DateCreated">Date Added</a></h3></td>
+    <td><h3><a href="/products/all?sortby=DateModified">Date Modified</a></h3></td>
+    <td><h3><a href="/products/all?sortby=Price">Price</a></h3></td>
+    <td><h3><a href="/products/all?sortby=Quantity">Stock</a></h3></td>
+    <td><h3>Condition</h3></td>
+    <td><h3>Category_ID</h3></td>
+    <td><h3>Brand_ID</h3></td>
+    <td><h3>Status</h3></td>
+
+</tr>
 {{range .}} 
 <tr>
     <td><a href="/api/v1/admin/product/{{.ID}}">{{.Name}}</a></td>

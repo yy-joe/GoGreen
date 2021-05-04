@@ -12,6 +12,8 @@ import (
 const baseURL = "http://localhost:5000/api/v1/admin/"
 
 func prodMain(w http.ResponseWriter, r *http.Request) {
+	sortKey := r.FormValue("sortby")
+	fmt.Println("sortKey =", sortKey)
 
 	url := baseURL + "products"
 	fmt.Println(url)
@@ -23,12 +25,23 @@ func prodMain(w http.ResponseWriter, r *http.Request) {
 	data, _ := ioutil.ReadAll(res.Body)
 	// fmt.Fprintln(w, res.StatusCode)
 	// fmt.Fprintln(w, string(data))
-	fmt.Println(string(data))
+	//fmt.Println(string(data))
+
+	// var products []Product
+	// err = json.Unmarshal(data, &products)
+	// tpl.ExecuteTemplate(w, "prodMain.gohtml", products)
 
 	var products []Product
 	err = json.Unmarshal(data, &products)
-	tpl.ExecuteTemplate(w, "prodMain.gohtml", products)
+	sortedProducts := sortProducts(products, sortKey)
+	fmt.Println("-----------------sortedProducts :----------------------")
+	fmt.Println(sortedProducts)
+	tpl.ExecuteTemplate(w, "prodMain.gohtml", sortedProducts)
+}
 
+func sortProducts(products []Product, sortKey string) []Product { //currently using selection sort
+
+	return selectionSort(products, sortKey)
 }
 
 // type Product struct {
@@ -45,22 +58,6 @@ func prodMain(w http.ResponseWriter, r *http.Request) {
 // 	CategoryID   int
 // 	BrandID      int
 // 	Status       string
-// }
-
-// newProduct = Product{
-// 	ID:           0,
-// 	Name:         "Prod123",
-// 	Image:        "",
-// 	DescShort:    "Test product",
-// 	DescLong:     "Long Test product",
-// 	DateCreated:  "",
-// 	DateModified: "",
-// 	Price:        10.00,
-// 	Quantity:     50,
-// 	Condition:    "New",
-// 	CategoryID:   2,
-// 	BrandID:      3,
-// 	Status:       "Live",
 // }
 
 func prodDetail(w http.ResponseWriter, r *http.Request) {
