@@ -176,7 +176,7 @@ func deleteCategory(db *sql.DB, ID int) error {
 }
 
 func getProducts(db *sql.DB) ([]Product, error) {
-	results, err := db.Query("SELECT * FROM GoGreen.Products")
+	results, err := db.Query("SELECT * FROM GoGreen.Products ORDER BY Date_Modified DESC")
 
 	if err != nil {
 		log.Fatalln(err)
@@ -288,26 +288,26 @@ func main_queries() {
 
 	fmt.Println("Database opened")
 
-	// addBrand(db, "Brand A", "This is Brand A")
-	// addCategory(db, "Category A", "This is category A")
-	// addProducts(db, "Bag", "nil", "This is a bag", "This is a very very very big bag.", 20.50, 5, "New", 1, 1, "active")
+	addBrand(db, "Brand A", "This is Brand A")
+	addCategory(db, "Category A", "This is category A")
+	addProducts(db, "Bag", "nil", "This is a bag", "This is a very very very big bag.", 20.50, 5, "New", 1, 1, "active")
 
-	// //add a few more brands
-	// addBrand(db, "Brand B", "This is Brand B")
-	// addBrand(db, "Brand C", "This is Brand C")
+	//add a few more brands
+	addBrand(db, "Brand B", "This is Brand B")
+	addBrand(db, "Brand C", "This is Brand C")
 
-	// //add a few more categories
-	// addCategory(db, "Category B", "This is category B")
-	// addCategory(db, "Category C", "This is category C")
+	//add a few more categories
+	addCategory(db, "Category B", "This is category B")
+	addCategory(db, "Category C", "This is category C")
 
-	// //add a few more products
-	// addProducts(db, "Bag B", "nil", "This is another bag", "This is also a very big bag.", 16, 10, "New", 1, 2, "active")
-	// addProducts(db, "Bag C", "nil", "This is one more bag", "This is not a very big bag.", 8.80, 5, "New", 1, 1, "unlisted")
-	// addProducts(db, "Lunch bag 1", "nil", "This is an insulated lunch bag", "This insulated lunch bag is ideal to keep your food warm/cool.", 20, 10, "New", 2, 2, "active")
-	// addProducts(db, "CutleryXYZ", "nil", "This is a set of reusable cutleries", "The package contains a spoon, a fork, a knife and a pair of chopsticks.", 8, 10, "New", 3, 3, "soldout")
-	// addProducts(db, "MyStraw", "nil", "Metal straw", "This is a reusable straw.", 5, 10, "New", 3, 2, "active")
-	// addProducts(db, "Foodbox", "nil", "This is a lunch box.", "This medium sized lunch box is big enough to store takeaway food, yet small enough to carry.", 25, 8, "New", 3, 1, "unlisted")
-	// addProducts(db, "Baggy", "nil", "Large shopping bag", "This is a huge shopping bag.", 20, 10, "New", 1, 3, "active")
+	//add a few more products
+	addProducts(db, "Bag B", "nil", "This is another bag", "This is also a very big bag.", 16, 10, "New", 1, 2, "active")
+	addProducts(db, "Bag C", "nil", "This is one more bag", "This is not a very big bag.", 8.80, 5, "New", 1, 1, "unlisted")
+	addProducts(db, "Lunch bag 1", "nil", "This is an insulated lunch bag", "This insulated lunch bag is ideal to keep your food warm/cool.", 20, 10, "New", 2, 2, "active")
+	addProducts(db, "CutleryXYZ", "nil", "This is a set of reusable cutleries", "The package contains a spoon, a fork, a knife and a pair of chopsticks.", 8, 10, "New", 3, 3, "soldout")
+	addProducts(db, "MyStraw", "nil", "Metal straw", "This is a reusable straw.", 5, 10, "New", 3, 2, "active")
+	addProducts(db, "Foodbox", "nil", "This is a lunch box.", "This medium sized lunch box is big enough to store takeaway food, yet small enough to carry.", 25, 8, "New", 3, 1, "unlisted")
+	addProducts(db, "Baggy", "nil", "Large shopping bag", "This is a huge shopping bag.", 20, 10, "New", 1, 3, "active")
 
 	// editProducts(db, "Bag", "nil", "This is a bag", "2021-04-27", 20.50, 5, 1, 1, 1)
 	// deleteProducts(db, 1)

@@ -5,8 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
+)
+
+var (
+	productsByPrice    []Product
+	productsByQuantity []Product
 )
 
 const baseURL = "http://localhost:5000/api/v1/admin/"
@@ -33,32 +39,37 @@ func prodMain(w http.ResponseWriter, r *http.Request) {
 
 	var products []Product
 	err = json.Unmarshal(data, &products)
-	sortedProducts := sortProducts(products, sortKey)
-	fmt.Println("-----------------sortedProducts :----------------------")
-	fmt.Println(sortedProducts)
-	tpl.ExecuteTemplate(w, "prodMain.gohtml", sortedProducts)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	productsByPrice = make([]Product, 0, len(products))
+	productsByQuantity = make([]Product, 0, len(products))
+	productsByPrice = mergeSort(products, "Price")
+	productsByQuantity = mergeSort(products, "Quantity")
+
+	switch sortKey {
+	case "":
+		tpl.ExecuteTemplate(w, "prodMain.gohtml", products)
+	case "Price":
+		tpl.ExecuteTemplate(w, "prodMain.gohtml", productsByPrice)
+
+	case "Quantity":
+		tpl.ExecuteTemplate(w, "prodMain.gohtml", productsByQuantity)
+
+	default:
+		sortedProducts := sortProducts(products, sortKey)
+		fmt.Println(sortedProducts)
+
+		tpl.ExecuteTemplate(w, "prodMain.gohtml", sortedProducts)
+	}
 }
 
-func sortProducts(products []Product, sortKey string) []Product { //currently using selection sort
+func sortProducts(products []Product, sortKey string) []Product {
 	return mergeSort(products, sortKey)
 	//return selectionSort(products, sortKey)
 }
-
-// type Product struct {
-// 	ID           int
-// 	Name         string
-// 	Image        string
-// 	DescShort    string
-// 	DescLong     string
-// 	DateCreated  string
-// 	DateModified string
-// 	Price        float64
-// 	Quantity     int
-// 	Condition    string
-// 	CategoryID   int
-// 	BrandID      int
-// 	Status       string
-// }
 
 func prodDetail(w http.ResponseWriter, r *http.Request) {
 
