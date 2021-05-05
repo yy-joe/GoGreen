@@ -40,8 +40,8 @@ func prodMain(w http.ResponseWriter, r *http.Request) {
 }
 
 func sortProducts(products []Product, sortKey string) []Product { //currently using selection sort
-
-	return selectionSort(products, sortKey)
+	return mergeSort(products, sortKey)
+	//return selectionSort(products, sortKey)
 }
 
 // type Product struct {
