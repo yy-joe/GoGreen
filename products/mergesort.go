@@ -59,7 +59,7 @@ func merge(front, back []Product, sortKey string) []Product {
 				}
 			}
 
-		case "Quantity", "Sales":
+		case "Quantity", "QuantitySold":
 
 			if i < len(front) && j < len(back) {
 				if int(frontField.Int()) <= int(backField.Int()) {

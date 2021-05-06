@@ -164,7 +164,6 @@ func product(w http.ResponseWriter, r *http.Request) {
 		}
 		// w.WriteHeader(http.StatusAccepted)
 		// w.Write([]byte("202 - product deleted: " + params["productid"]))
-		fmt.Println("Product deleted:", productID)
 
 		// } else if r.Header.Get("Content-type") == "application/json" {
 
@@ -182,28 +181,6 @@ func product(w http.ResponseWriter, r *http.Request) {
 			//convert JSON to object
 			json.Unmarshal(reqBody, &newProduct)
 
-			// if newProduct.Name == "" {
-			// 	w.WriteHeader(http.StatusUnprocessableEntity)
-			// 	w.Write([]byte("422 - Please supply product information in JSON format"))
-			// 	return
-			// }
-
-			// newProduct = Product{
-			// 	ID:           0,
-			// 	Name:         "Prod123",
-			// 	Image:        "",
-			// 	DescShort:    "Test product",
-			// 	DescLong:     "Long Test product",
-			// 	DateCreated:  "",
-			// 	DateModified: "",
-			// 	Price:        10.00,
-			// 	Quantity:     50,
-			// 	Condition:    "New",
-			// 	CategoryID:   2,
-			// 	BrandID:      3,
-			// 	Status:       "Live",
-			// }
-
 			//check if product exists; add only if product does not exist
 			err := addProducts(db, newProduct.Name, newProduct.Image, newProduct.DescShort, newProduct.DescLong, newProduct.Price, newProduct.Quantity, newProduct.Condition, newProduct.CategoryID, newProduct.BrandID, newProduct.Status)
 			if err != nil {
@@ -217,27 +194,21 @@ func product(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Product successfully added.")
 		}
 	} else if r.Method == "PUT" { //PUT is for creating or updating existing product
-		// reqBody, err := ioutil.ReadAll(r.Body)
+		var updatedProduct Product
+		reqBody, err := ioutil.ReadAll(r.Body)
 
-		newProduct := Product{
-			ID:           0,
-			Name:         "Prod123",
-			Image:        "",
-			DescShort:    "Test product",
-			DescLong:     "Long Test product",
-			DateCreated:  "",
-			DateModified: "",
-			Price:        20.00,
-			Quantity:     30,
-			Condition:    "New",
-			CategoryID:   2,
-			BrandID:      3,
-			Status:       "Sold Out",
+		if err != nil {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			w.Write([]byte("422 - Please supply product information in JSON format"))
+			return
+		} else {
+			//convert JSON to object
+			json.Unmarshal(reqBody, &updatedProduct)
 		}
 
 		//product already exists, update product
 		productID, _ := strconv.Atoi(params["productid"])
-		err := editProducts(db, newProduct.Name, newProduct.Image, newProduct.DescShort, newProduct.DescLong, newProduct.Price, newProduct.Quantity, newProduct.Condition, newProduct.CategoryID, newProduct.BrandID, newProduct.Status, productID)
+		err = editProducts(db, updatedProduct.Name, updatedProduct.Image, updatedProduct.DescShort, updatedProduct.DescLong, updatedProduct.Price, updatedProduct.Quantity, updatedProduct.Condition, updatedProduct.CategoryID, updatedProduct.BrandID, updatedProduct.Status, productID)
 
 		if err != nil {
 			Trace.Println(err)
@@ -416,6 +387,8 @@ func serverGetCategory(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("404 - No category found."))
 	}
 
+	json.NewEncoder(w).Encode(category)
+
 	fmt.Println(category)
 }
 
@@ -430,15 +403,25 @@ func serverAddCategory(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	fmt.Println("The database is opened:", db)
 
-	newCategory := Category{0, "Category C", "This is category c"}
-
-	err = addCategory(db, newCategory.Name, newCategory.Description)
+	var newCategory Category
+	reqBody, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
 		Trace.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 -Error adding category at database."))
 		return
+	} else {
+		json.Unmarshal(reqBody, &newCategory)
+
+		err := addCategory(db, newCategory.Name, newCategory.Description)
+
+		if err != nil {
+			Trace.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("500 -Error updating product at database."))
+			return
+		}
 	}
 
 	fmt.Println("Category successfully added.")
@@ -446,6 +429,7 @@ func serverAddCategory(w http.ResponseWriter, r *http.Request) {
 
 func serverEditCategory(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
+	catID, _ := strconv.Atoi(params["categoryid"])
 
 	//open the database
 	db, err := openDB()
@@ -457,22 +441,31 @@ func serverEditCategory(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	fmt.Println("The database is opened:", db)
 
-	updatedCategory := Category{0, "Category C", "This is category c"}
-
-	categoryID, _ := strconv.Atoi(params["categoryid"])
-
-	err = editCategory(db, updatedCategory.Name, updatedCategory.Description, categoryID)
+	var updatedCategory Category
+	reqBody, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
-		Trace.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("500 -Error updating category at database."))
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		w.Write([]byte("422 - Please supply product information in JSON format"))
 		return
+	} else {
+		//convert JSON to object
+		json.Unmarshal(reqBody, &updatedCategory)
+
+		err = editCategory(db, updatedCategory.Name, updatedCategory.Description, catID)
+
+		if err != nil {
+			Trace.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("500 -Error updating category at database."))
+			return
+		}
 	}
 }
 
 func serverDeleteCategory(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
+	categoryID, _ := strconv.Atoi(params["categoryid"])
 
 	//open the database
 	db, err := openDB()
@@ -483,8 +476,6 @@ func serverDeleteCategory(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 	fmt.Println("The database is opened:", db)
-
-	categoryID, _ := strconv.Atoi(params["categoryid"])
 
 	err = deleteCategory(db, categoryID)
 
@@ -530,8 +521,24 @@ func main() {
 	// router.HandleFunc("/products/active", prodActive)
 	// router.HandleFunc("/products/soldout", prodSoldout)
 	// router.HandleFunc("/products/unlisted", prodUnlisted)
-	// router.HandleFunc("/product/{productid}", prodDetail)
-	router.HandleFunc("/product/new", prodDetail)
+	router.HandleFunc("/product/{productid}", prodDetail)
+	router.HandleFunc("/product/new", prodAdd)
+	router.HandleFunc("/product/update/{productid}", prodUpdate)
+	router.HandleFunc("/product/delete/{productid}", prodDelete)
+
+	//UI URLs for Category Management (Admin)
+	router.HandleFunc("/categories/all", catMain)
+	router.HandleFunc("/category/{categoryid}", catDetail)
+	router.HandleFunc("/category/new", catAdd)
+	router.HandleFunc("/category/update/{categoryid}", catUpdate)
+	router.HandleFunc("/category/delete/{categoryid}", catDelete)
+
+	//UI URLs for Brand Management (Admin)
+	// router.HandleFunc("/brands/all", brandMain)
+	// router.HandleFunc("/brand/{catid}", brandDetail)
+	// router.HandleFunc("/brand/new", brandAdd)
+	// router.HandleFunc("/brand/update/{catid}", brandUpdate)
+	// router.HandleFunc("/brand/delete/{catid}", brandDelete)
 
 	fmt.Println("Listening at port 5000")
 	//log.Fatal(http.ListenAndServe(":5000", router))

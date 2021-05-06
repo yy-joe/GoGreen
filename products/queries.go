@@ -22,6 +22,7 @@ type Product struct {
 	DateModified string
 	Price        float64
 	Quantity     int
+	QuantitySold int
 	Condition    string
 	CategoryID   int
 	BrandID      int
@@ -187,7 +188,7 @@ func getProducts(db *sql.DB) ([]Product, error) {
 	for results.Next() {
 		var product Product
 
-		err = results.Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
+		err = results.Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.QuantitySold, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
 
 		if err != nil {
 			log.Fatalln(err)
@@ -213,7 +214,7 @@ func getProductsByStatus(db *sql.DB, status string) ([]Product, error) {
 	for results.Next() {
 		var product Product
 
-		err = results.Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
+		err = results.Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.QuantitySold, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
 
 		if err != nil {
 			log.Fatalln(err)
@@ -228,7 +229,7 @@ func getProductsByStatus(db *sql.DB, status string) ([]Product, error) {
 func getProduct(db *sql.DB, productID string) (Product, error) {
 	var product Product
 
-	err := db.QueryRow("SELECT * FROM Products WHERE ID=?", productID).Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
+	err := db.QueryRow("SELECT * FROM Products WHERE ID=?", productID).Scan(&product.ID, &product.Name, &product.Image, &product.DescShort, &product.DescLong, &product.DateCreated, &product.DateModified, &product.Price, &product.Quantity, &product.QuantitySold, &product.Condition, &product.CategoryID, &product.BrandID, &product.Status)
 
 	if err != nil {
 		log.Fatalln(err)
@@ -238,7 +239,7 @@ func getProduct(db *sql.DB, productID string) (Product, error) {
 }
 
 func addProducts(db *sql.DB, Name string, Image string, DescShort string, DescLong string, Price float64, Quantity int, Condition string, CategoryID int, BrandID int, Status string) error {
-	query := fmt.Sprintf("INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, `Condition`, Category_ID, Brand_ID, Status) VALUES ('%s', '%s', '%s', '%s', curdate(), curdate(), %v, %d, '%s', %d, %d, '%s')", Name, Image, DescShort, DescLong, Price, Quantity, Condition, CategoryID, BrandID, Status)
+	query := fmt.Sprintf("INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, Quantity_Sold, `Condition`, Category_ID, Brand_ID, Status) VALUES ('%s', '%s', '%s', '%s', curdate(), curdate(), %v, %d, 0, '%s', %d, %d, '%s')", Name, Image, DescShort, DescLong, Price, Quantity, Condition, CategoryID, BrandID, Status)
 
 	_, err := db.Exec(query)
 
