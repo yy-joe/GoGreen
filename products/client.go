@@ -74,8 +74,10 @@ func sortProducts(products []Product, sortKey string) []Product {
 }
 
 func prodAdd(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("inside prodAdd..........")
 
 	if r.Method == http.MethodPost {
+		fmt.Println("prodAdd: processing submitted form...")
 		//add the new product to the database
 		price, _ := strconv.ParseFloat(r.FormValue("Price"), 64)
 		qty, _ := strconv.Atoi(r.FormValue("Quantity"))
@@ -112,6 +114,7 @@ func prodAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("prodAdd: new page laod, skip form submission. Getting list of categories and brands.")
 	//get the categories & brands
 	catsAndBrands := struct {
 		Categories []Category

@@ -490,7 +490,7 @@ func serverDeleteCategory(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	// main_queries()
+	//main_queries()
 
 	router := mux.NewRouter()
 	// router.HandleFunc("/api/v1/", home)
@@ -522,14 +522,14 @@ func main() {
 	// router.HandleFunc("/products/soldout", prodSoldout)
 	// router.HandleFunc("/products/unlisted", prodUnlisted)
 	router.HandleFunc("/product/{productid}", prodDetail)
-	router.HandleFunc("/product/new", prodAdd)
+	router.HandleFunc("/product", prodAdd)
 	router.HandleFunc("/product/update/{productid}", prodUpdate)
 	router.HandleFunc("/product/delete/{productid}", prodDelete)
 
 	//UI URLs for Category Management (Admin)
 	router.HandleFunc("/categories/all", catMain)
 	router.HandleFunc("/category/{categoryid}", catDetail)
-	router.HandleFunc("/category/new", catAdd)
+	router.HandleFunc("/category", catAdd)
 	router.HandleFunc("/category/update/{categoryid}", catUpdate)
 	router.HandleFunc("/category/delete/{categoryid}", catDelete)
 
