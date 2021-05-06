@@ -41,6 +41,7 @@ CREATE TABLE `Products` (
   `Date_Modified` date not null,
   `Price` decimal(10,2) NOT NULL,
   `Quantity` int NOT NULL,
+  `Quantity_Sold` int NOT NULL,
   `Condition` varchar(10) NOT NULL,
   `Category_ID` int NOT NULL,
   `Brand_ID` int NOT NULL,
