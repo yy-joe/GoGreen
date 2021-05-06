@@ -58,7 +58,7 @@ func activeProducts(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("500 -Error getting products from database."))
 		return
 	}
-	// json.NewEncoder(w).Encode(productsFromDB)
+	json.NewEncoder(w).Encode(products)
 	fmt.Println(products)
 }
 
@@ -80,7 +80,7 @@ func soldoutProducts(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("500 -Error getting products from database."))
 		return
 	}
-	// json.NewEncoder(w).Encode(productsFromDB)
+	json.NewEncoder(w).Encode(products)
 	fmt.Println(products)
 }
 
@@ -102,7 +102,7 @@ func unlistedProducts(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("500 -Error getting products from database."))
 		return
 	}
-	// json.NewEncoder(w).Encode(productsFromDB)
+	json.NewEncoder(w).Encode(products)
 	fmt.Println(products)
 }
 
@@ -541,10 +541,8 @@ func main() {
 	//handle functions for UI
 	//UI URLs for Product Management (Admin)
 	router.HandleFunc("/products/all", prodMain)
-	// router.HandleFunc("/products/active", prodActive)
-	// router.HandleFunc("/products/soldout", prodSoldout)
-	// router.HandleFunc("/products/unlisted", prodUnlisted)
 	router.HandleFunc("/product/new", prodAdd)
+	router.HandleFunc("/products/{byStatus}", prodByStatus)
 	router.HandleFunc("/product/{productid}", prodDetail)
 	router.HandleFunc("/product/update/{productid}", prodUpdate)
 	router.HandleFunc("/product/delete/{productid}", prodDelete)

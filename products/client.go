@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -71,6 +72,63 @@ func prodMain(w http.ResponseWriter, r *http.Request) {
 func sortProducts(products []Product, sortKey string) []Product {
 	return mergeSort(products, sortKey)
 	//return selectionSort(products, sortKey)
+}
+
+func prodByStatus(w http.ResponseWriter, r *http.Request) {
+	sortKey := r.FormValue("sortby")
+	fmt.Println("sortKey =", sortKey)
+
+	params := mux.Vars(r)
+	byStatus := params["byStatus"]
+
+	url := baseURL + "products/" + byStatus
+	fmt.Println(url)
+	res, err := http.Get(url)
+	if err != nil {
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+	}
+	defer res.Body.Close()
+	data, _ := ioutil.ReadAll(res.Body)
+
+	var products []Product
+	err = json.Unmarshal(data, &products)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// productsByPrice = make([]Product, 0, len(products))
+	// productsByQuantity = make([]Product, 0, len(products))
+	// productsByPrice = mergeSort(products, "Price")
+	// productsByQuantity = mergeSort(products, "Quantity")
+
+	Status := strings.Title(byStatus)
+	type templateData struct {
+		Status   string
+		ByStatus string
+		Products []Product
+	}
+
+	// switch sortKey {
+	// case "":
+	// 	tpl.ExecuteTemplate(w, "prodByStatus.gohtml", templateData{Status, byStatus, products})
+	// case "Price":
+	// 	tpl.ExecuteTemplate(w, "prodByStatus.gohtml", templateData{Status, byStatus, productsByPrice})
+
+	// case "Quantity":
+	// 	tpl.ExecuteTemplate(w, "prodByStatus.gohtml", templateData{Status, byStatus, productsByQuantity})
+
+	// default:
+	if sortKey == "" {
+		sortKey = "Name"
+	}
+	sortedProducts := sortProducts(products, sortKey)
+	fmt.Println(sortedProducts)
+	fmt.Println("Status=", Status)
+	fmt.Println("byStatus=", byStatus)
+
+	tpl.ExecuteTemplate(w, "prodByStatus.gohtml", templateData{Status, byStatus, sortedProducts})
+	// }
 }
 
 func prodAdd(w http.ResponseWriter, r *http.Request) {
@@ -178,7 +236,13 @@ func prodUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//direct user back to the main products page
-		http.Redirect(w, r, "/products/all", http.StatusSeeOther)
+		byStatus := r.FormValue("byStatus")
+		if byStatus == "" {
+			http.Redirect(w, r, "/products/all", http.StatusSeeOther)
+		} else {
+			http.Redirect(w, r, "/products/"+byStatus, http.StatusSeeOther)
+		}
+
 	}
 }
 
