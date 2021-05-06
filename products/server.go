@@ -264,6 +264,8 @@ func serverGetBrand(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("404 - No brand found."))
 	}
 
+	json.NewEncoder(w).Encode(brand)
+
 	fmt.Println(brand)
 }
 
@@ -278,22 +280,34 @@ func serverAddBrand(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	fmt.Println("The database is opened:", db)
 
-	newBrand := Brand{0, "Brand C", "This is brand c"}
-
-	err = addBrand(db, newBrand.Name, newBrand.Description)
+	var newBrand Brand
+	reqBody, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
-		Trace.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("500 -Error updating brand at database."))
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		w.Write([]byte("422 - Please supply product information in JSON format"))
 		return
-	}
+	} else {
+		//convert JSON to object
+		json.Unmarshal(reqBody, &newBrand)
 
-	fmt.Println("Brand successfully added.")
+		//check if product exists; add only if product does not exist
+		err = addBrand(db, newBrand.Name, newBrand.Description)
+
+		if err != nil {
+			Trace.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("500 -Error updating product at database."))
+			return
+		}
+
+		fmt.Println("Brand successfully added.")
+	}
 }
 
 func serverEditBrand(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
+	brandID, _ := strconv.Atoi(params["brandid"])
 
 	//open the database
 	db, err := openDB()
@@ -305,34 +319,43 @@ func serverEditBrand(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	fmt.Println("The database is opened:", db)
 
-	updatedBrand := Brand{0, "Brand C", "This is brand c"}
-
-	brandID, _ := strconv.Atoi(params["brandid"])
-
-	err = editBrand(db, updatedBrand.Name, updatedBrand.Description, brandID)
+	var updatedBrand Brand
+	reqBody, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
-		Trace.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("500 -Error updating brand at database."))
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		w.Write([]byte("422 - Please supply product information in JSON format"))
 		return
+	} else {
+		//convert JSON to object
+		json.Unmarshal(reqBody, &updatedBrand)
+
+		err = editBrand(db, updatedBrand.Name, updatedBrand.Description, brandID)
+
+		if err != nil {
+			Trace.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("500 -Error updating brand at database."))
+			return
+		}
+
+		fmt.Println("Brand successfully added.")
 	}
 }
 
 func serverDeleteBrand(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
+	brandID, _ := strconv.Atoi(params["brandid"])
 
 	//open the database
 	db, err := openDB()
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		w.Write([]byte("503 - Error opening the product database."))
-		Trace.Fatalln("Failed to open the product database.")
+		w.Write([]byte("503 - Error opening the brand database."))
+		Trace.Fatalln("Failed to open the brand database.")
 	}
 	defer db.Close()
 	fmt.Println("The database is opened:", db)
-
-	brandID, _ := strconv.Atoi(params["brandid"])
 
 	err = deleteBrand(db, brandID)
 
@@ -521,24 +544,24 @@ func main() {
 	// router.HandleFunc("/products/active", prodActive)
 	// router.HandleFunc("/products/soldout", prodSoldout)
 	// router.HandleFunc("/products/unlisted", prodUnlisted)
+	router.HandleFunc("/product/new", prodAdd)
 	router.HandleFunc("/product/{productid}", prodDetail)
-	router.HandleFunc("/product", prodAdd)
 	router.HandleFunc("/product/update/{productid}", prodUpdate)
 	router.HandleFunc("/product/delete/{productid}", prodDelete)
 
 	//UI URLs for Category Management (Admin)
 	router.HandleFunc("/categories/all", catMain)
+	router.HandleFunc("/category/new", catAdd)
 	router.HandleFunc("/category/{categoryid}", catDetail)
-	router.HandleFunc("/category", catAdd)
 	router.HandleFunc("/category/update/{categoryid}", catUpdate)
 	router.HandleFunc("/category/delete/{categoryid}", catDelete)
 
 	//UI URLs for Brand Management (Admin)
-	// router.HandleFunc("/brands/all", brandMain)
-	// router.HandleFunc("/brand/{catid}", brandDetail)
-	// router.HandleFunc("/brand/new", brandAdd)
-	// router.HandleFunc("/brand/update/{catid}", brandUpdate)
-	// router.HandleFunc("/brand/delete/{catid}", brandDelete)
+	router.HandleFunc("/brands/all", brandMain)
+	router.HandleFunc("/brand/new", brandAdd)
+	router.HandleFunc("/brand/{brandid}", brandDetail)
+	router.HandleFunc("/brand/update/{brandid}", brandUpdate)
+	router.HandleFunc("/brand/delete/{brandid}", brandDelete)
 
 	fmt.Println("Listening at port 5000")
 	//log.Fatal(http.ListenAndServe(":5000", router))

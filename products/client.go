@@ -297,10 +297,8 @@ func catDetail(w http.ResponseWriter, r *http.Request) {
 
 func catAdd(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Println("HELP HELP")
 	if r.Method == http.MethodPost {
 
-		fmt.Println("HELP")
 		newCategory := Category{
 			ID:          0,
 			Name:        r.FormValue("Name"),
@@ -404,4 +402,123 @@ func clientGetBrands() (brands []Brand) {
 
 	err = json.Unmarshal(data, &brands)
 	return
+}
+
+func brandMain(w http.ResponseWriter, r *http.Request) {
+	brands := clientGetBrands()
+
+	tpl.ExecuteTemplate(w, "brandMain.gohtml", brands)
+}
+
+func brandDetail(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	brandID := params["brandid"]
+
+	url := baseURL + "brand/" + brandID
+	fmt.Println(url)
+	res, err := http.Get(url)
+	if err != nil {
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+	}
+	defer res.Body.Close()
+	data, _ := ioutil.ReadAll(res.Body)
+
+	var brand Brand
+	err = json.Unmarshal(data, &brand)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	tpl.ExecuteTemplate(w, "brandDetail.gohtml", brand)
+}
+
+func brandAdd(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method == http.MethodPost {
+
+		newBrand := Brand{
+			ID:          0,
+			Name:        r.FormValue("Name"),
+			Description: r.FormValue("Description"),
+		}
+
+		jsonValue, err := json.Marshal(newBrand)
+
+		url := baseURL + "brand"
+
+		_, err = http.Post(url, "application/json", bytes.NewBuffer(jsonValue))
+
+		if err != nil {
+			fmt.Printf("The HTTP request failed with error %s\n", err)
+		}
+
+		http.Redirect(w, r, "/brands/all", http.StatusSeeOther)
+	}
+
+	tpl.ExecuteTemplate(w, "brandAdd.gohtml", nil)
+}
+
+func brandUpdate(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	brandID := params["brandid"]
+
+	if r.Method == http.MethodPost {
+		newBrand := Brand{
+			ID:          0,
+			Name:        r.FormValue("Name"),
+			Description: r.FormValue("Description"),
+		}
+
+		jsonValue, err := json.Marshal(newBrand)
+
+		url := baseURL + "brand/" + brandID
+
+		req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(jsonValue))
+		if err != nil {
+			fmt.Printf("The HTTP request failed with error %s\n", err)
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+
+		client := &http.Client{}
+		res, err := client.Do(req)
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		if res.StatusCode != 200 {
+			return
+		}
+
+		//direct user back to the main products page
+		http.Redirect(w, r, "/brands/all", http.StatusSeeOther)
+	}
+}
+
+func brandDelete(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	brandID := params["brandid"]
+
+	url := baseURL + "brand/" + brandID
+
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	if err != nil {
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+	}
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if res.StatusCode != 200 {
+		return
+	}
+
+	//direct user back to the main products page
+	http.Redirect(w, r, "/brands/all", http.StatusSeeOther)
 }
