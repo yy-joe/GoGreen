@@ -13,11 +13,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var (
-	productsByPrice    []Product
-	productsByQuantity []Product
-)
-
 const baseURL = "http://localhost:5000/api/v1/admin/"
 
 func prodMain(w http.ResponseWriter, r *http.Request) {
@@ -46,11 +41,6 @@ func prodMain(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	productsByPrice = make([]Product, 0, len(products))
-	productsByQuantity = make([]Product, 0, len(products))
-	productsByPrice = mergeSort(products, "Price")
-	productsByQuantity = mergeSort(products, "Quantity")
 
 	switch sortKey {
 	case "":

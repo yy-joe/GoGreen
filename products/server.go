@@ -17,9 +17,17 @@ var (
 	tpl   *template.Template
 	Trace *log.Logger //Prints execution status to stdout, for debugging purposes
 
-	storedProducts []Product
+	storedProducts   []Product
 	storedCategories []Category
-	storedBrands []Brand
+	storedBrands     []Brand
+
+	productsByPrice    []Product
+	productsByQuantity []Product
+	productsByName     []Product
+
+	a []Product
+	b []Brand
+	c []Category
 )
 
 func init() {
@@ -32,22 +40,30 @@ func init() {
 	defer db.Close()
 	fmt.Println("The database is opened:", db)
 
-	storedProducts, err := getProducts(db)
-
+	a = make([]Product, 0)
+	a, err := getProducts(db)
 	if err != nil {
 		Trace.Fatalln("Failed to open the product database.")
 	}
 
-	storedCategories, err = getCategories(db)
+	for _, v := range a {
+		storedProducts = append(storedProducts, v)
+	}
 
+	c, err = getCategories(db)
 	if err != nil {
 		Trace.Fatalln("Failed to open the category database.")
 	}
+	for _, v := range c {
+		storedCategories = append(storedCategories, v)
+	}
 
-	storedBrands, err = getBrands(db)
-
+	b, err = getBrands(db)
 	if err != nil {
 		Trace.Fatalln("Failed to open the brand database.")
+	}
+	for _, v := range b {
+		storedBrands = append(storedBrands, v)
 	}
 
 	fmt.Println("Products:", storedProducts)
@@ -55,6 +71,14 @@ func init() {
 	fmt.Println("Categories:", storedCategories)
 	fmt.Println()
 	fmt.Println("Brands:", storedBrands)
+
+	productsByPrice = make([]Product, 0, len(storedProducts))
+	productsByQuantity = make([]Product, 0, len(storedProducts))
+	productsByPrice = mergeSort(storedProducts, "Price")
+	productsByQuantity = mergeSort(storedProducts, "Quantity")
+
+	productsByName = make([]Product, 0, len(storedProducts))
+	productsByName = mergeSort(storedProducts, "Name")
 }
 
 func openDB() (db *sql.DB, err error) {
@@ -75,7 +99,7 @@ func openDB() (db *sql.DB, err error) {
 	return
 }
 
-func activeProducts(w http.ResponseWriter, r *http.Request) {
+func getActiveProducts(w http.ResponseWriter, r *http.Request) {
 	//open the database
 	db, err := openDB()
 	if err != nil {
@@ -97,7 +121,7 @@ func activeProducts(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(products)
 }
 
-func soldoutProducts(w http.ResponseWriter, r *http.Request) {
+func getSoldoutProducts(w http.ResponseWriter, r *http.Request) {
 	//open the database
 	db, err := openDB()
 	if err != nil {
@@ -119,7 +143,7 @@ func soldoutProducts(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(products)
 }
 
-func unlistedProducts(w http.ResponseWriter, r *http.Request) {
+func getUnlistedProducts(w http.ResponseWriter, r *http.Request) {
 	//open the database
 	db, err := openDB()
 	if err != nil {
@@ -553,9 +577,9 @@ func main() {
 	router := mux.NewRouter()
 	// router.HandleFunc("/api/v1/", home)
 	router.HandleFunc("/api/v1/admin/products", allproducts)
-	router.HandleFunc("/api/v1/admin/products/active", activeProducts)
-	router.HandleFunc("/api/v1/admin/products/soldout", soldoutProducts)
-	router.HandleFunc("/api/v1/admin/products/unlisted", unlistedProducts)
+	router.HandleFunc("/api/v1/admin/products/active", getActiveProducts)
+	router.HandleFunc("/api/v1/admin/products/soldout", getSoldoutProducts)
+	router.HandleFunc("/api/v1/admin/products/unlisted", getUnlistedProducts)
 	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("GET")
 	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("PUT")
 	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("DELETE")
@@ -583,14 +607,13 @@ func main() {
 	router.HandleFunc("/product/delete/{productid}", prodDelete)
 
 	//UI URLS for Products/Shop (User)
-	// router.HandleFunc("/", index)
-	// router.HandleFunc("/{productid}", prod)
+	router.HandleFunc("/", index)
+	router.HandleFunc("/{productid}", details) //later rename
 	// router.HandleFunc("/by-category/{categoryid}",)
 	// router.HandleFunc("/by-brand/{brandid}",)
 	// router.HandleFunc("/user/cart",)
 	// router.HandleFunc("/user/cart/checkout",)
 	// router.HandleFunc(“/user/order-confirmation”,)
-
 
 	//UI URLs for Category Management (Admin)
 	router.HandleFunc("/categories/all", catMain)

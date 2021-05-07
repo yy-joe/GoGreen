@@ -2,27 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{.Name}}</title>
+    <title>{{.Product.Name}}</title>
 </head>
 <body>
 
 <h2>Product Details</h2>
 
-<p>{{.Name}}</p>
-<p>{{.DescShort}}</p>
-<p>{{.DescLong}}</p>
-<p>{{.Price}}</p>
-<p>{{.Quantity}}</p>
+<p>Name: {{.Product.Name}}</p>
+<p>Short Description: {{.Product.DescShort}}</p>
+<p>Long Description: {{.Product.DescLong}}</p>
+<p>Price: {{.Product.Price}}</p>
+<p>Quantity: {{.Product.Quantity}}</p>
+<p>Category: {{.CategoryName}}</p>
+<p>Brand: {{.BrandName}}</p>
 
 <form method="post" action="">
-    <input type="hidden" name="productid" value="{{.ID}}"><br>
-    <input type="hidden" name="productprice" value="{{.Price}}"><br>
-
     <label  for="quantity">Quantity:</label>
-    <input type="number" id="quantity" name="quantityToBuy" min="1" max="{{.Quantity}}" required><br>
+    <input type="number" id="quantity" name="quantityToBuy" min="1" max="{{.Product.Quantity}}" required><br>
 
+    <input type="hidden" name="productid" value="{{.Product.ID}}"><br>
+    <input type="hidden" name="productprice" value="{{.Product.Price}}"><br>  
     <input type="submit" value="Add To Cart">
-<form>
+    
+</form>
 
 </body>
 </html>
