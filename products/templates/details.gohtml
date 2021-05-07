@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.Name}}</title>
+</head>
+<body>
+
+<h2>Product Details</h2>
+
+<p>{{.Name}}</p>
+<p>{{.DescShort}}</p>
+<p>{{.DescLong}}</p>
+<p>{{.Price}}</p>
+<p>{{.Quantity}}</p>
+
+<form method="post" action="">
+    <input type="hidden" name="productid" value="{{.ID}}"><br>
+    <input type="hidden" name="productprice" value="{{.Price}}"><br>
+
+    <label  for="quantity">Quantity:</label>
+    <input type="number" id="quantity" name="quantityToBuy" min="1" max="{{.Quantity}}" required><br>
+
+    <input type="submit" value="Add To Cart">
+<form>
+
+</body>
+</html>

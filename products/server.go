@@ -16,10 +16,45 @@ import (
 var (
 	tpl   *template.Template
 	Trace *log.Logger //Prints execution status to stdout, for debugging purposes
+
+	storedProducts []Product
+	storedCategories []Category
+	storedBrands []Brand
 )
 
 func init() {
 	tpl = template.Must(template.ParseGlob("templates/*"))
+
+	db, err := openDB()
+	if err != nil {
+		Trace.Fatalln("Failed to open the product database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	storedProducts, err := getProducts(db)
+
+	if err != nil {
+		Trace.Fatalln("Failed to open the product database.")
+	}
+
+	storedCategories, err = getCategories(db)
+
+	if err != nil {
+		Trace.Fatalln("Failed to open the category database.")
+	}
+
+	storedBrands, err = getBrands(db)
+
+	if err != nil {
+		Trace.Fatalln("Failed to open the brand database.")
+	}
+
+	fmt.Println("Products:", storedProducts)
+	fmt.Println()
+	fmt.Println("Categories:", storedCategories)
+	fmt.Println()
+	fmt.Println("Brands:", storedBrands)
 }
 
 func openDB() (db *sql.DB, err error) {
@@ -546,6 +581,16 @@ func main() {
 	router.HandleFunc("/product/{productid}", prodDetail)
 	router.HandleFunc("/product/update/{productid}", prodUpdate)
 	router.HandleFunc("/product/delete/{productid}", prodDelete)
+
+	//UI URLS for Products/Shop (User)
+	// router.HandleFunc("/", index)
+	// router.HandleFunc("/{productid}", prod)
+	// router.HandleFunc("/by-category/{categoryid}",)
+	// router.HandleFunc("/by-brand/{brandid}",)
+	// router.HandleFunc("/user/cart",)
+	// router.HandleFunc("/user/cart/checkout",)
+	// router.HandleFunc(“/user/order-confirmation”,)
+
 
 	//UI URLs for Category Management (Admin)
 	router.HandleFunc("/categories/all", catMain)

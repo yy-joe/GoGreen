@@ -29,13 +29,13 @@
         <label for="new">New</label>
         <input type="radio" name="Condition" value="New" required>
         <label for="used">Used</label>
-        <input type="radio" name="Condition" value="Used" checked required >
+        <input type="radio" name="Condition" value="Used" checked required>
     {{end}}
 
     <br/>
 
     <label for="categories">Categories:</label>
-    <select name="CategoryID" id="categories">
+    <select name="CategoryID" id="categories" required>
     {{range $index, $element := .Categories}} 
         {{if eq $.Product.CategoryID $element.ID}}
             <option value="{{$element.ID}}" selected> {{$element.Name}} </option>
