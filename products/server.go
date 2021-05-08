@@ -16,69 +16,10 @@ import (
 var (
 	tpl   *template.Template
 	Trace *log.Logger //Prints execution status to stdout, for debugging purposes
-
-	storedProducts   []Product
-	storedCategories []Category
-	storedBrands     []Brand
-
-	productsByPrice    []Product
-	productsByQuantity []Product
-	productsByName     []Product
-
-	a []Product
-	b []Brand
-	c []Category
 )
 
 func init() {
 	tpl = template.Must(template.ParseGlob("templates/*"))
-
-	db, err := openDB()
-	if err != nil {
-		Trace.Fatalln("Failed to open the product database.")
-	}
-	defer db.Close()
-	fmt.Println("The database is opened:", db)
-
-	a = make([]Product, 0)
-	a, err := getProducts(db)
-	if err != nil {
-		Trace.Fatalln("Failed to open the product database.")
-	}
-
-	for _, v := range a {
-		storedProducts = append(storedProducts, v)
-	}
-
-	c, err = getCategories(db)
-	if err != nil {
-		Trace.Fatalln("Failed to open the category database.")
-	}
-	for _, v := range c {
-		storedCategories = append(storedCategories, v)
-	}
-
-	b, err = getBrands(db)
-	if err != nil {
-		Trace.Fatalln("Failed to open the brand database.")
-	}
-	for _, v := range b {
-		storedBrands = append(storedBrands, v)
-	}
-
-	fmt.Println("Products:", storedProducts)
-	fmt.Println()
-	fmt.Println("Categories:", storedCategories)
-	fmt.Println()
-	fmt.Println("Brands:", storedBrands)
-
-	productsByPrice = make([]Product, 0, len(storedProducts))
-	productsByQuantity = make([]Product, 0, len(storedProducts))
-	productsByPrice = mergeSort(storedProducts, "Price")
-	productsByQuantity = mergeSort(storedProducts, "Quantity")
-
-	productsByName = make([]Product, 0, len(storedProducts))
-	productsByName = mergeSort(storedProducts, "Name")
 }
 
 func openDB() (db *sql.DB, err error) {
@@ -570,12 +511,47 @@ func serverDeleteCategory(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Category deleted:", categoryID)
 }
 
+func updateProdQty(w http.ResponseWriter, r *http.Request) {
+
+	// //read the string sent to the service
+	// var products []Product
+	// reqBody, err := ioutil.ReadAll(r.Body)
+
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusUnprocessableEntity)
+	// 	w.Write([]byte("422 - Please supply product information in JSON format"))
+	// 	return
+	// } else {
+	// 	//convert JSON to object
+	// 	json.Unmarshal(reqBody, &products)
+
+	// 	//range through the list of products to be updated
+	// 	for _, v := range products {
+
+	// 	}
+
+	// 	err := addProducts(db, newProduct.Name, newProduct.Image, newProduct.DescShort, newProduct.DescLong, newProduct.Price, newProduct.Quantity, newProduct.Condition, newProduct.CategoryID, newProduct.BrandID, newProduct.Status)
+	// 	if err != nil {
+	// 		Trace.Println(err)
+	// 		w.WriteHeader(http.StatusInternalServerError)
+	// 		w.Write([]byte("500 -Error updating product at database."))
+	// 		return
+	// 	}
+
+	// 	// w.WriteHeader(http.StatusCreated)
+	// 	// w.Write([]byte("201 - product added: " + params["productid"]))
+	// 	fmt.Println("Product successfully added.")
+	// }
+
+}
+
 func main() {
 
 	//main_queries()
 
 	router := mux.NewRouter()
 	// router.HandleFunc("/api/v1/", home)
+	router.HandleFunc("/api/v1/admin/product", product).Methods("POST")
 	router.HandleFunc("/api/v1/admin/products", allproducts)
 	router.HandleFunc("/api/v1/admin/products/active", getActiveProducts)
 	router.HandleFunc("/api/v1/admin/products/soldout", getSoldoutProducts)
@@ -583,7 +559,7 @@ func main() {
 	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("GET")
 	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("PUT")
 	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("DELETE")
-	router.HandleFunc("/api/v1/admin/product", product).Methods("POST")
+	router.HandleFunc("/api/v1/admin/product/quantity-update", updateProdQty).Methods("PUT")
 
 	router.HandleFunc("/api/v1/admin/brand", serverAddBrand).Methods("POST")
 	router.HandleFunc("/api/v1/admin/brands", allBrands)

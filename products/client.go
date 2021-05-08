@@ -439,6 +439,25 @@ func catDelete(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/categories/all", http.StatusSeeOther)
 }
 
+func clientGetProducts() (products []Product) {
+
+	url := baseURL + "products"
+	fmt.Println(url)
+	res, err := http.Get(url)
+	if err != nil {
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+	}
+	defer res.Body.Close()
+	data, _ := ioutil.ReadAll(res.Body)
+	// fmt.Fprintln(w, res.StatusCode)
+	// fmt.Fprintln(w, string(data))
+	fmt.Println("From clientGetProducts:", string(data))
+	fmt.Println("---- end of data ----")
+
+	err = json.Unmarshal(data, &products)
+	return
+}
+
 func clientGetBrands() (brands []Brand) {
 
 	url := baseURL + "brands"

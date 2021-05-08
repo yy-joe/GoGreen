@@ -8,9 +8,50 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type CartItem struct {
+	ID            int
+	Name          string
+	Price         float64
+	QuantityToBuy int
+}
+
+var (
+	storedProducts   []Product
+	storedCategories []Category
+	storedBrands     []Brand
+
+	productsByPrice    []Product
+	productsByQuantity []Product
+	productsByName     []Product
+
+	shoppingCart []CartItem
+)
+
+func initGlobalVars() {
+	storedProducts = clientGetProducts()
+	storedCategories = clientGetCategories()
+	storedBrands = clientGetBrands()
+
+	fmt.Println("Products:", storedProducts)
+	fmt.Println()
+	fmt.Println("Categories:", storedCategories)
+	fmt.Println()
+	fmt.Println("Brands:", storedBrands)
+
+	productsByPrice = make([]Product, 0, len(storedProducts))
+	productsByQuantity = make([]Product, 0, len(storedProducts))
+	productsByPrice = mergeSort(storedProducts, "Price")
+	productsByQuantity = mergeSort(storedProducts, "Quantity")
+
+	productsByName = make([]Product, 0, len(storedProducts))
+	productsByName = mergeSort(storedProducts, "Name")
+}
+
 // const baseURL = "http://localhost:5000/api/v1/admin/"
 
 func index(w http.ResponseWriter, r *http.Request) {
+	initGlobalVars()
+
 	fmt.Println("storedBrands=", storedBrands)
 	fmt.Println("storedCategories=", storedCategories)
 	fmt.Println("storedProducts=", storedProducts)
@@ -19,7 +60,6 @@ func index(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("sortKey =", sortKey)
 
 	//search the global var storedProducts for active products
-	fmt.Println("a=", a)
 	var activeProducts []Product
 	for _, v := range storedProducts {
 		if v.Status == "active" {
@@ -62,6 +102,10 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func details(w http.ResponseWriter, r *http.Request) {
+	//check if global vars are initialized.
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
 	params := mux.Vars(r)
 	id, _ := strconv.Atoi(params["productid"])
 
@@ -88,14 +132,33 @@ func details(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	var addedToCart bool
+	var addedToCartMsg string
+	if r.Method == http.MethodPost {
+		id := r.FormValue("productid")
+		price, _ := strconv.ParseFloat(r.FormValue("productprice"), 64)
+		qty, _ := strconv.Atoi(r.FormValue("quantityToBuy"))
+		fmt.Println(id, price)
+
+		//update shopping cart with these values
+
+		//pass added to cart message to the template
+		addedToCart = true
+		addedToCartMsg = fmt.Sprintf("%d are added to your cart.", qty)
+	}
+
 	templateData := struct {
-		CategoryName string
-		BrandName    string
-		Product      Product
+		CategoryName   string
+		BrandName      string
+		Product        Product
+		AddedToCart    bool
+		AddedToCartMsg string
 	}{
-		CategoryName: categoryName,
-		BrandName:    brandName,
-		Product:      product,
+		CategoryName:   categoryName,
+		BrandName:      brandName,
+		Product:        product,
+		AddedToCart:    addedToCart,
+		AddedToCartMsg: addedToCartMsg,
 	}
 
 	tpl.ExecuteTemplate(w, "details.gohtml", templateData)
