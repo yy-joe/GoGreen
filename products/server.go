@@ -513,35 +513,59 @@ func serverDeleteCategory(w http.ResponseWriter, r *http.Request) {
 
 func updateProdQty(w http.ResponseWriter, r *http.Request) {
 
-	// //read the string sent to the service
-	// var products []Product
-	// reqBody, err := ioutil.ReadAll(r.Body)
+// type CartItem struct {
+// 	ID            int
+// 	Name          string
+// 	Price         float64
+// 	QuantityToBuy int
+// }
 
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusUnprocessableEntity)
-	// 	w.Write([]byte("422 - Please supply product information in JSON format"))
-	// 	return
-	// } else {
-	// 	//convert JSON to object
-	// 	json.Unmarshal(reqBody, &products)
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the category database."))
+		Trace.Fatalln("Failed to open the category database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
 
-	// 	//range through the list of products to be updated
-	// 	for _, v := range products {
+	var cartItems []CartItem
+	reqBody, err := ioutil.ReadAll(r.Body)
 
-	// 	}
+	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		w.Write([]byte("422 - Please supply product information in JSON format"))
+		return
+	} else {
+		json.Unmarshal(reqBody, &cartItems)
 
-	// 	err := addProducts(db, newProduct.Name, newProduct.Image, newProduct.DescShort, newProduct.DescLong, newProduct.Price, newProduct.Quantity, newProduct.Condition, newProduct.CategoryID, newProduct.BrandID, newProduct.Status)
-	// 	if err != nil {
-	// 		Trace.Println(err)
-	// 		w.WriteHeader(http.StatusInternalServerError)
-	// 		w.Write([]byte("500 -Error updating product at database."))
-	// 		return
-	// 	}
+		//range through the list of products to be updated
+		for _, v := range cartItems {
 
-	// 	// w.WriteHeader(http.StatusCreated)
-	// 	// w.Write([]byte("201 - product added: " + params["productid"]))
-	// 	fmt.Println("Product successfully added.")
-	// }
+			productID := strconv.Itoa(v.ID)
+
+			product, err := getProduct(db, productID)
+
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			updatedQuantity := product.Quantity - v.QuantityToBuy
+			updatedQuantitySold := product.QuantitySold + v.QuantityToBuy
+
+			fmt.Println(updatedQuantity)
+			fmt.Println(updatedQuantitySold)
+
+			err = editProductQuantity(db, updatedQuantity, updatedQuantitySold, v.ID)
+
+			if err != nil {
+				Trace.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("500 -Error updating product at database."))
+				return
+			}
+		}
+	}
 
 }
 
@@ -556,10 +580,10 @@ func main() {
 	router.HandleFunc("/api/v1/admin/products/active", getActiveProducts)
 	router.HandleFunc("/api/v1/admin/products/soldout", getSoldoutProducts)
 	router.HandleFunc("/api/v1/admin/products/unlisted", getUnlistedProducts)
+	router.HandleFunc("/api/v1/admin/product/quantity-update", updateProdQty).Methods("PUT")
 	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("GET")
 	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("PUT")
 	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("DELETE")
-	router.HandleFunc("/api/v1/admin/product/quantity-update", updateProdQty).Methods("PUT")
 
 	router.HandleFunc("/api/v1/admin/brand", serverAddBrand).Methods("POST")
 	router.HandleFunc("/api/v1/admin/brands", allBrands)
@@ -572,6 +596,9 @@ func main() {
 	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverGetCategory).Methods("GET")
 	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverEditCategory).Methods("PUT")
 	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverDeleteCategory).Methods("DELETE")
+
+	// router.HandleFunc("/api/v1/admin/orders/customer-orders", )	
+	// router.HandleFunc("/api/v1/admin/orders/product-orders", )
 
 	//handle functions for UI
 	//UI URLs for Product Management (Admin)
@@ -588,7 +615,7 @@ func main() {
 	// router.HandleFunc("/by-category/{categoryid}",)
 	// router.HandleFunc("/by-brand/{brandid}",)
 	router.HandleFunc("/user/cart", cart)
-	// router.HandleFunc("/user/cart/checkout",)
+	// router.HandleFunc("/user/cart/checkout", cartCheckout)
 	// router.HandleFunc(“/user/order-confirmation”,)
 
 	//UI URLs for Category Management (Admin)

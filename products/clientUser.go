@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"log"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -25,8 +28,10 @@ var (
 	productsByQuantity []Product
 	productsByName     []Product
 
-	shopMap map[string]shopCart //the key of the map is sessionID or userID
+	shopMap = make(map[string]shopCart)
 )
+
+const sessionID string = "abcde"
 
 func initGlobalVars() {
 	storedProducts = clientGetProducts()
@@ -46,8 +51,6 @@ func initGlobalVars() {
 
 	productsByName = make([]Product, 0, len(storedProducts))
 	productsByName = mergeSort(storedProducts, "Name")
-
-	shopMap = make(map[string]shopCart)
 }
 
 // const baseURL = "http://localhost:5000/api/v1/admin/"
@@ -106,7 +109,6 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 func details(w http.ResponseWriter, r *http.Request) {
 	//get the userID/ sessionID
-	sessionID := "abcde"
 
 	//check if global vars are initialized.
 	if len(storedProducts) == 0 {
@@ -150,12 +152,27 @@ func details(w http.ResponseWriter, r *http.Request) {
 
 		//update shopping cart with these values
 		userCart = shopMap[sessionID]
-		userCart = append(userCart, CartItem{id, name, price, qty})
+
+		for _, v := range userCart {
+			if v.ID == id {
+				addedToCart = true
+
+				if v.QuantityToBuy + qty > product.Quantity {
+					addedToCartMsg = "Quantity Exceeded! Failed to add to cart."
+				} else {
+					v.QuantityToBuy += qty
+				}
+			}
+		}
+
+		if !addedToCart {
+			userCart = append(userCart, CartItem{id, name, price, qty})
+			addedToCart = true
+			addedToCartMsg = fmt.Sprintf("%d are added to your cart.", qty)
+		}
+
 		shopMap[sessionID] = userCart
 
-		//pass added to cart message to the template
-		addedToCart = true
-		addedToCartMsg = fmt.Sprintf("%d are added to your cart.", qty)
 	}
 
 	templateData := struct {
@@ -177,6 +194,68 @@ func details(w http.ResponseWriter, r *http.Request) {
 
 func cart(w http.ResponseWriter, r *http.Request) {
 	//get the userID/ sessionID
-	sessionID := "abcde"
-	fmt.Fprint(w, shopMap[sessionID])
+
+	userCart := shopMap[sessionID]
+
+	if r.Method == http.MethodPost {
+
+		jsonValue, err := json.Marshal(userCart)
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		url := baseURL + "product/quantity-update"
+
+		req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(jsonValue))
+
+		if err != nil {
+			fmt.Printf("The HTTP request failed with error %s\n", err)
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+
+		client := &http.Client{}
+		res, err := client.Do(req)
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		if res.StatusCode != 200 {
+			return
+		}
+
+		// execute order confirmation page
+		tpl.ExecuteTemplate(w, "orderConfirmation.gohtml", nil)
+		return
+	}
+
+	 type cartItemWithPrice struct {
+        ID            int
+        Name          string
+        Price         float64
+        QuantityToBuy int
+        ItemTotal     float64
+    }
+    cartWithPrice := []cartItemWithPrice{}
+    var cartTotal float64
+    for _, v := range userCart {
+        itemTotal := v.Price * float64(v.QuantityToBuy)
+        cartTotal += itemTotal
+        cartWithPrice = append(cartWithPrice, cartItemWithPrice{v.ID, v.Name, v.Price, v.QuantityToBuy, itemTotal})
+    }
+    templateData := struct {
+        CartData  []cartItemWithPrice
+        CartTotal float64
+    }{
+        CartData:  cartWithPrice,
+        CartTotal: cartTotal,
+    }
+
+	fmt.Println("============================================================")
+	fmt.Println(shopMap[sessionID])
+	fmt.Println("============================================================")
+
+	tpl.ExecuteTemplate(w, "cart.gohtml", templateData)
 }
