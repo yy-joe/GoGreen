@@ -587,7 +587,7 @@ func main() {
 	router.HandleFunc("/{productid}", details) //later rename
 	// router.HandleFunc("/by-category/{categoryid}",)
 	// router.HandleFunc("/by-brand/{brandid}",)
-	// router.HandleFunc("/user/cart",)
+	router.HandleFunc("/user/cart", cart)
 	// router.HandleFunc("/user/cart/checkout",)
 	// router.HandleFunc(“/user/order-confirmation”,)
 

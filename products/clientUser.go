@@ -14,6 +14,7 @@ type CartItem struct {
 	Price         float64
 	QuantityToBuy int
 }
+type shopCart []CartItem
 
 var (
 	storedProducts   []Product
@@ -24,7 +25,7 @@ var (
 	productsByQuantity []Product
 	productsByName     []Product
 
-	shoppingCart []CartItem
+	shopMap map[string]shopCart //the key of the map is sessionID or userID
 )
 
 func initGlobalVars() {
@@ -45,6 +46,8 @@ func initGlobalVars() {
 
 	productsByName = make([]Product, 0, len(storedProducts))
 	productsByName = mergeSort(storedProducts, "Name")
+
+	shopMap = make(map[string]shopCart)
 }
 
 // const baseURL = "http://localhost:5000/api/v1/admin/"
@@ -102,6 +105,9 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func details(w http.ResponseWriter, r *http.Request) {
+	//get the userID/ sessionID
+	sessionID := "abcde"
+
 	//check if global vars are initialized.
 	if len(storedProducts) == 0 {
 		initGlobalVars()
@@ -134,13 +140,18 @@ func details(w http.ResponseWriter, r *http.Request) {
 
 	var addedToCart bool
 	var addedToCartMsg string
+	var userCart shopCart
 	if r.Method == http.MethodPost {
-		id := r.FormValue("productid")
+		id, _ := strconv.Atoi(r.FormValue("productid"))
+		name := r.FormValue("productname")
 		price, _ := strconv.ParseFloat(r.FormValue("productprice"), 64)
 		qty, _ := strconv.Atoi(r.FormValue("quantityToBuy"))
 		fmt.Println(id, price)
 
 		//update shopping cart with these values
+		userCart = shopMap[sessionID]
+		userCart = append(userCart, CartItem{id, name, price, qty})
+		shopMap[sessionID] = userCart
 
 		//pass added to cart message to the template
 		addedToCart = true
@@ -162,4 +173,10 @@ func details(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tpl.ExecuteTemplate(w, "details.gohtml", templateData)
+}
+
+func cart(w http.ResponseWriter, r *http.Request) {
+	//get the userID/ sessionID
+	sessionID := "abcde"
+	fmt.Fprint(w, shopMap[sessionID])
 }
