@@ -1,0 +1,151 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+
+	"goLive/GoGreen/restapi/handler"
+
+	_ "github.com/go-sql-driver/mysql"
+)
+
+func init() {
+	handler.TestData()
+}
+
+func main() {
+	// Load env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	portNo := os.Getenv("PORT")
+
+	l := log.New(os.Stdout, "course-api", log.LstdFlags)
+
+	router := mux.NewRouter()
+	// auth
+	router.HandleFunc("/api/v1/login", handler.LoginAcc).Methods("POST")
+	router.HandleFunc("/api/v1/register", handler.Register).Methods("POST")
+	router.HandleFunc("/api/v1/logout", handler.Logout).Methods("POST")
+
+	// user
+	router.HandleFunc("/api/v1/user", handler.ListUser).Methods("GET")
+	router.HandleFunc("/api/v1/user/{username}", handler.EditUser).Methods("PUT")
+
+	// admin
+	router.HandleFunc("/api/v1/admin/users", handler.ListAllUsers).Methods("GET")
+	router.HandleFunc("/api/v1/admin/user", handler.AddUser).Methods("POST")
+	router.HandleFunc("/api/v1/admin/user/{username}", handler.GetAdminUser).Methods("GET")
+	router.HandleFunc("/api/v1/admin/user/{username}", handler.EditAdminUser).Methods("PUT")
+	router.HandleFunc("/api/v1/admin/user/{username}", handler.DeleteUser).Methods("DELETE")
+
+	// YYJ & J
+	router.HandleFunc("/api/v1/admin/product", product).Methods("POST")
+	router.HandleFunc("/api/v1/admin/products", allproducts)
+	router.HandleFunc("/api/v1/admin/products/active", getActiveProducts)
+	router.HandleFunc("/api/v1/admin/products/soldout", getSoldoutProducts)
+	router.HandleFunc("/api/v1/admin/products/unlisted", getUnlistedProducts)
+	router.HandleFunc("/api/v1/admin/product/quantity-update", updateProdQty).Methods("PUT")
+	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("GET")
+	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("PUT")
+	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("DELETE")
+
+	router.HandleFunc("/api/v1/admin/brand", serverAddBrand).Methods("POST")
+	router.HandleFunc("/api/v1/admin/brands", allBrands)
+	router.HandleFunc("/api/v1/admin/brand/{brandid}", serverGetBrand).Methods("GET")
+	router.HandleFunc("/api/v1/admin/brand/{brandid}", serverEditBrand).Methods("PUT")
+	router.HandleFunc("/api/v1/admin/brand/{brandid}", serverDeleteBrand).Methods("DELETE")
+
+	router.HandleFunc("/api/v1/admin/category", serverAddCategory).Methods("POST")
+	router.HandleFunc("/api/v1/admin/categories", allCategories)
+	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverGetCategory).Methods("GET")
+	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverEditCategory).Methods("PUT")
+	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverDeleteCategory).Methods("DELETE")
+
+	// router.HandleFunc("/api/v1/admin/orders/customer-orders", )
+	// router.HandleFunc("/api/v1/admin/orders/product-orders", )
+
+	//handle functions for UI
+	//UI URLs for Product Management (Admin)
+	router.HandleFunc("/products/all", prodMain)
+	router.HandleFunc("/product/new", prodAdd)
+	router.HandleFunc("/products/{byStatus}", prodByStatus)
+	router.HandleFunc("/product/{productid}", prodDetail)
+	router.HandleFunc("/product/update/{productid}", prodUpdate)
+	router.HandleFunc("/product/delete/{productid}", prodDelete)
+
+	//UI URLS for Products/Shop (User)
+	router.HandleFunc("/", index)
+	router.HandleFunc("/{productid}", details) //later rename
+	// router.HandleFunc("/by-category/{categoryid}",)
+	// router.HandleFunc("/by-brand/{brandid}",)
+	router.HandleFunc("/user/cart", cart)
+	// router.HandleFunc("/user/cart/checkout", cartCheckout)
+	// router.HandleFunc(“/user/order-confirmation”,)
+
+	//UI URLs for Category Management (Admin)
+	router.HandleFunc("/categories/all", catMain)
+	router.HandleFunc("/category/new", catAdd)
+	router.HandleFunc("/category/{categoryid}", catDetail)
+	router.HandleFunc("/category/update/{categoryid}", catUpdate)
+	router.HandleFunc("/category/delete/{categoryid}", catDelete)
+
+	//UI URLs for Brand Management (Admin)
+	router.HandleFunc("/brands/all", brandMain)
+	router.HandleFunc("/brand/new", brandAdd)
+	router.HandleFunc("/brand/{brandid}", brandDetail)
+	router.HandleFunc("/brand/update/{brandid}", brandUpdate)
+	router.HandleFunc("/brand/delete/{brandid}", brandDelete)
+
+	// server config
+	serverConfig := http.Server{
+		Addr:         ":" + portNo,      // configure the bind address
+		Handler:      router,            // set the default handler
+		ErrorLog:     l,                 // set the logger for the server
+		IdleTimeout:  5 * time.Second,   // max time to read request from the client
+		ReadTimeout:  10 * time.Second,  // max time to write response to the client
+		WriteTimeout: 120 * time.Second, // max time for connections using TCP Keep-Alive
+	}
+
+	// start the server
+	go func() {
+		l.Println("Starting server on port", portNo)
+		err := serverConfig.ListenAndServeTLS("cert.pem", "key.pem")
+		// err := serverConfig.ListenAndServe()
+		if err != nil {
+			l.Printf("Error starting server: %s\n", err)
+			os.Exit(1)
+		}
+	}()
+
+	// serverConfig.ListenAndServe()
+	// Signal notification channel
+	// signalChannel := make(chan os.Signal)
+	signalChannel := make(chan os.Signal, 1)
+
+	// broadcast msg into signal channel
+	signal.Notify(signalChannel, os.Interrupt)
+	// signal.Notify(signalChannel, os.Kill)
+	signal.Notify(signalChannel, syscall.SIGTERM)
+
+	// Block until a signal is received.
+	sig := <-signalChannel
+	fmt.Println("Recieve terminate, graceful shutdow", sig)
+	log.Println("Recieve terminate, graceful shutdow", sig)
+
+	// gracefully shutdown and close all the workers in 30sec
+	shutdownContext, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	// defer cancel()
+	serverConfig.Shutdown(shutdownContext)
+
+}

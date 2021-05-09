@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GoGreen</title>
+</head>
+<body>
+<h1>Shopping Cart</h1>
+
+<table>
+<tr>
+    <td><h3>Product Name</h3></td>
+    <td><h3>Quantity</h3></td>
+    <td><h3>Price</h3></td>
+    <td><h3>Total</h3></td>
+
+</tr>
+{{range .CartData}} 
+<tr>
+    <td><a href="/{{.ID}}">{{.Name}}</a></td>
+    <td>{{.QuantityToBuy}}</td>
+    <td>${{.Price}}</td>
+    <td>${{.ItemTotal}}</td>
+</tr>
+{{end}}
+
+<tr>
+<td>Total for this order:</td>
+<td></td>
+<td></td>
+<td>${{.CartTotal}}</td>
+</tr>
+</table>
+
+<br>
+
+<form method="post">
+<input type="submit" name="submit" value="Checkout">
+</form>
+</body>
+</html>
