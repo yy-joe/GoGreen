@@ -149,9 +149,9 @@ func GenerateJWT() (string, error) {
 	return tokenString, nil
 }
 
-func main() {
+func main_main() {
 	fmt.Println(key)
-	fmt.Println(mySigningKey)
+	//fmt.Println(mySigningKey)
 	// test, err := CreateToken()
 	// if err != nil {
 

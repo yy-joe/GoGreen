@@ -1,4 +1,4 @@
-package main
+package products
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ import (
 
 const baseURL = "http://localhost:5000/api/v1/admin/"
 
-func prodMain(w http.ResponseWriter, r *http.Request) {
+func ProdMain(w http.ResponseWriter, r *http.Request) {
 	sortKey := r.FormValue("sortby")
 	fmt.Println("sortKey =", sortKey)
 
@@ -64,7 +64,7 @@ func sortProducts(products []Product, sortKey string) []Product {
 	//return selectionSort(products, sortKey)
 }
 
-func prodByStatus(w http.ResponseWriter, r *http.Request) {
+func ProdByStatus(w http.ResponseWriter, r *http.Request) {
 	sortKey := r.FormValue("sortby")
 	fmt.Println("sortKey =", sortKey)
 
@@ -121,7 +121,7 @@ func prodByStatus(w http.ResponseWriter, r *http.Request) {
 	// }
 }
 
-func prodAdd(w http.ResponseWriter, r *http.Request) {
+func ProdAdd(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("inside prodAdd..........")
 
 	if r.Method == http.MethodPost {
@@ -175,7 +175,7 @@ func prodAdd(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "prodAdd.gohtml", catsAndBrands)
 }
 
-func prodUpdate(w http.ResponseWriter, r *http.Request) {
+func ProdUpdate(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	productID := params["productid"]
 
@@ -236,7 +236,7 @@ func prodUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func prodDetail(w http.ResponseWriter, r *http.Request) {
+func ProdDetail(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["productid"]
 
@@ -276,7 +276,7 @@ func prodDetail(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "prodDetail.gohtml", templateData)
 }
 
-func prodDelete(w http.ResponseWriter, r *http.Request) {
+func ProdDelete(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	productID := params["productid"]
 
@@ -320,13 +320,13 @@ func clientGetCategories() (categories []Category) {
 	return
 }
 
-func catMain(w http.ResponseWriter, r *http.Request) {
+func CatMain(w http.ResponseWriter, r *http.Request) {
 	categories := clientGetCategories()
 
 	tpl.ExecuteTemplate(w, "catMain.gohtml", categories)
 }
 
-func catDetail(w http.ResponseWriter, r *http.Request) {
+func CatDetail(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	catID := params["categoryid"]
 
@@ -349,7 +349,7 @@ func catDetail(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "catDetail.gohtml", category)
 }
 
-func catAdd(w http.ResponseWriter, r *http.Request) {
+func CatAdd(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 
@@ -375,7 +375,7 @@ func catAdd(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "catAdd.gohtml", nil)
 }
 
-func catUpdate(w http.ResponseWriter, r *http.Request) {
+func CatUpdate(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	catID := params["categoryid"]
 
@@ -413,7 +413,7 @@ func catUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func catDelete(w http.ResponseWriter, r *http.Request) {
+func CatDelete(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	catID := params["categoryid"]
 
@@ -477,13 +477,13 @@ func clientGetBrands() (brands []Brand) {
 	return
 }
 
-func brandMain(w http.ResponseWriter, r *http.Request) {
+func BrandMain(w http.ResponseWriter, r *http.Request) {
 	brands := clientGetBrands()
 
 	tpl.ExecuteTemplate(w, "brandMain.gohtml", brands)
 }
 
-func brandDetail(w http.ResponseWriter, r *http.Request) {
+func BrandDetail(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	brandID := params["brandid"]
 
@@ -506,7 +506,7 @@ func brandDetail(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "brandDetail.gohtml", brand)
 }
 
-func brandAdd(w http.ResponseWriter, r *http.Request) {
+func BrandAdd(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 
@@ -532,7 +532,7 @@ func brandAdd(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "brandAdd.gohtml", nil)
 }
 
-func brandUpdate(w http.ResponseWriter, r *http.Request) {
+func BrandUpdate(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	brandID := params["brandid"]
 
@@ -570,7 +570,7 @@ func brandUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func brandDelete(w http.ResponseWriter, r *http.Request) {
+func BrandDelete(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	brandID := params["brandid"]
 

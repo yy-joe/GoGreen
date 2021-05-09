@@ -1,4 +1,4 @@
-package main
+package products
 
 import (
 	"database/sql"
@@ -40,7 +40,7 @@ func openDB() (db *sql.DB, err error) {
 	return
 }
 
-func getActiveProducts(w http.ResponseWriter, r *http.Request) {
+func GetActiveProducts(w http.ResponseWriter, r *http.Request) {
 	//open the database
 	db, err := openDB()
 	if err != nil {
@@ -62,7 +62,7 @@ func getActiveProducts(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(products)
 }
 
-func getSoldoutProducts(w http.ResponseWriter, r *http.Request) {
+func GetSoldoutProducts(w http.ResponseWriter, r *http.Request) {
 	//open the database
 	db, err := openDB()
 	if err != nil {
@@ -84,7 +84,7 @@ func getSoldoutProducts(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(products)
 }
 
-func getUnlistedProducts(w http.ResponseWriter, r *http.Request) {
+func GetUnlistedProducts(w http.ResponseWriter, r *http.Request) {
 	//open the database
 	db, err := openDB()
 	if err != nil {
@@ -106,7 +106,7 @@ func getUnlistedProducts(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(products)
 }
 
-func allproducts(w http.ResponseWriter, r *http.Request) {
+func Allproducts(w http.ResponseWriter, r *http.Request) {
 
 	//open the database
 	db, err := openDB()
@@ -129,7 +129,7 @@ func allproducts(w http.ResponseWriter, r *http.Request) {
 	// fmt.Println(products)
 }
 
-func product(w http.ResponseWriter, r *http.Request) {
+func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	//open the database
@@ -222,7 +222,7 @@ func product(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func allBrands(w http.ResponseWriter, r *http.Request) {
+func AllBrands(w http.ResponseWriter, r *http.Request) {
 	db, err := openDB()
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -243,7 +243,7 @@ func allBrands(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(brands)
 }
 
-func serverGetBrand(w http.ResponseWriter, r *http.Request) {
+func ServerGetBrand(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	//open the database
@@ -269,7 +269,7 @@ func serverGetBrand(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(brand)
 }
 
-func serverAddBrand(w http.ResponseWriter, r *http.Request) {
+func ServerAddBrand(w http.ResponseWriter, r *http.Request) {
 	//open the database
 	db, err := openDB()
 	if err != nil {
@@ -305,7 +305,7 @@ func serverAddBrand(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func serverEditBrand(w http.ResponseWriter, r *http.Request) {
+func ServerEditBrand(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	brandID, _ := strconv.Atoi(params["brandid"])
 
@@ -343,7 +343,7 @@ func serverEditBrand(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func serverDeleteBrand(w http.ResponseWriter, r *http.Request) {
+func ServerDeleteBrand(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	brandID, _ := strconv.Atoi(params["brandid"])
 
@@ -368,7 +368,7 @@ func serverDeleteBrand(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Brand deleted:", brandID)
 }
 
-func allCategories(w http.ResponseWriter, r *http.Request) {
+func AllCategories(w http.ResponseWriter, r *http.Request) {
 	db, err := openDB()
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -389,7 +389,7 @@ func allCategories(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(categories)
 }
 
-func serverGetCategory(w http.ResponseWriter, r *http.Request) {
+func ServerGetCategory(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	//open the database
@@ -415,7 +415,7 @@ func serverGetCategory(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(category)
 }
 
-func serverAddCategory(w http.ResponseWriter, r *http.Request) {
+func ServerAddCategory(w http.ResponseWriter, r *http.Request) {
 	//open the database
 	db, err := openDB()
 	if err != nil {
@@ -450,7 +450,7 @@ func serverAddCategory(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Category successfully added.")
 }
 
-func serverEditCategory(w http.ResponseWriter, r *http.Request) {
+func ServerEditCategory(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	catID, _ := strconv.Atoi(params["categoryid"])
 
@@ -486,7 +486,7 @@ func serverEditCategory(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func serverDeleteCategory(w http.ResponseWriter, r *http.Request) {
+func ServerDeleteCategory(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	categoryID, _ := strconv.Atoi(params["categoryid"])
 
@@ -511,14 +511,14 @@ func serverDeleteCategory(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Category deleted:", categoryID)
 }
 
-func updateProdQty(w http.ResponseWriter, r *http.Request) {
+func UpdateProdQty(w http.ResponseWriter, r *http.Request) {
 
-// type CartItem struct {
-// 	ID            int
-// 	Name          string
-// 	Price         float64
-// 	QuantityToBuy int
-// }
+	// type CartItem struct {
+	// 	ID            int
+	// 	Name          string
+	// 	Price         float64
+	// 	QuantityToBuy int
+	// }
 
 	db, err := openDB()
 	if err != nil {
@@ -569,7 +569,8 @@ func updateProdQty(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func main() {
+/*
+func main_product() {
 
 	//main_queries()
 
@@ -597,7 +598,7 @@ func main() {
 	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverEditCategory).Methods("PUT")
 	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverDeleteCategory).Methods("DELETE")
 
-	// router.HandleFunc("/api/v1/admin/orders/customer-orders", )	
+	// router.HandleFunc("/api/v1/admin/orders/customer-orders", )
 	// router.HandleFunc("/api/v1/admin/orders/product-orders", )
 
 	//handle functions for UI
@@ -641,3 +642,4 @@ func main() {
 	}
 
 }
+*/

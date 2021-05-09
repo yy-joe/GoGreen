@@ -13,7 +13,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
-	"goLive/GoGreen/restapi/handler"
+	"GoGreen/GoGreen/restapi/handler"
+
+	"GoGreen/GoGreen/products"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -50,62 +52,62 @@ func main() {
 	router.HandleFunc("/api/v1/admin/user/{username}", handler.DeleteUser).Methods("DELETE")
 
 	// YYJ & J
-	router.HandleFunc("/api/v1/admin/product", product).Methods("POST")
-	router.HandleFunc("/api/v1/admin/products", allproducts)
-	router.HandleFunc("/api/v1/admin/products/active", getActiveProducts)
-	router.HandleFunc("/api/v1/admin/products/soldout", getSoldoutProducts)
-	router.HandleFunc("/api/v1/admin/products/unlisted", getUnlistedProducts)
-	router.HandleFunc("/api/v1/admin/product/quantity-update", updateProdQty).Methods("PUT")
-	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("GET")
-	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("PUT")
-	router.HandleFunc("/api/v1/admin/product/{productid}", product).Methods("DELETE")
+	router.HandleFunc("/api/v1/admin/product", products.ProductCRUD).Methods("POST")
+	router.HandleFunc("/api/v1/admin/products", products.Allproducts)
+	router.HandleFunc("/api/v1/admin/products/active", products.GetActiveProducts)
+	router.HandleFunc("/api/v1/admin/products/soldout", products.GetSoldoutProducts)
+	router.HandleFunc("/api/v1/admin/products/unlisted", products.GetUnlistedProducts)
+	router.HandleFunc("/api/v1/admin/product/quantity-update", products.UpdateProdQty).Methods("PUT")
+	router.HandleFunc("/api/v1/admin/product/{productid}", products.ProductCRUD).Methods("GET")
+	router.HandleFunc("/api/v1/admin/product/{productid}", products.ProductCRUD).Methods("PUT")
+	router.HandleFunc("/api/v1/admin/product/{productid}", products.ProductCRUD).Methods("DELETE")
 
-	router.HandleFunc("/api/v1/admin/brand", serverAddBrand).Methods("POST")
-	router.HandleFunc("/api/v1/admin/brands", allBrands)
-	router.HandleFunc("/api/v1/admin/brand/{brandid}", serverGetBrand).Methods("GET")
-	router.HandleFunc("/api/v1/admin/brand/{brandid}", serverEditBrand).Methods("PUT")
-	router.HandleFunc("/api/v1/admin/brand/{brandid}", serverDeleteBrand).Methods("DELETE")
+	router.HandleFunc("/api/v1/admin/brand", products.ServerAddBrand).Methods("POST")
+	router.HandleFunc("/api/v1/admin/brands", products.AllBrands)
+	router.HandleFunc("/api/v1/admin/brand/{brandid}", products.ServerGetBrand).Methods("GET")
+	router.HandleFunc("/api/v1/admin/brand/{brandid}", products.ServerEditBrand).Methods("PUT")
+	router.HandleFunc("/api/v1/admin/brand/{brandid}", products.ServerDeleteBrand).Methods("DELETE")
 
-	router.HandleFunc("/api/v1/admin/category", serverAddCategory).Methods("POST")
-	router.HandleFunc("/api/v1/admin/categories", allCategories)
-	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverGetCategory).Methods("GET")
-	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverEditCategory).Methods("PUT")
-	router.HandleFunc("/api/v1/admin/category/{categoryid}", serverDeleteCategory).Methods("DELETE")
+	router.HandleFunc("/api/v1/admin/category", products.ServerAddCategory).Methods("POST")
+	router.HandleFunc("/api/v1/admin/categories", products.AllCategories)
+	router.HandleFunc("/api/v1/admin/category/{categoryid}", products.ServerGetCategory).Methods("GET")
+	router.HandleFunc("/api/v1/admin/category/{categoryid}", products.ServerEditCategory).Methods("PUT")
+	router.HandleFunc("/api/v1/admin/category/{categoryid}", products.ServerDeleteCategory).Methods("DELETE")
 
 	// router.HandleFunc("/api/v1/admin/orders/customer-orders", )
 	// router.HandleFunc("/api/v1/admin/orders/product-orders", )
 
 	//handle functions for UI
 	//UI URLs for Product Management (Admin)
-	router.HandleFunc("/products/all", prodMain)
-	router.HandleFunc("/product/new", prodAdd)
-	router.HandleFunc("/products/{byStatus}", prodByStatus)
-	router.HandleFunc("/product/{productid}", prodDetail)
-	router.HandleFunc("/product/update/{productid}", prodUpdate)
-	router.HandleFunc("/product/delete/{productid}", prodDelete)
+	router.HandleFunc("/products/all", products.ProdMain)
+	router.HandleFunc("/products/{byStatus}", products.ProdByStatus)
+	router.HandleFunc("/product/new", products.ProdAdd)
+	router.HandleFunc("/product/update/{productid}", products.ProdUpdate)
+	router.HandleFunc("/product/delete/{productid}", products.ProdDelete)
+	router.HandleFunc("/product/{productid}", products.ProdDetail)
 
 	//UI URLS for Products/Shop (User)
-	router.HandleFunc("/", index)
-	router.HandleFunc("/{productid}", details) //later rename
+	router.HandleFunc("/", products.Index)
+	router.HandleFunc("/{productid}", products.Details) //later rename
 	// router.HandleFunc("/by-category/{categoryid}",)
 	// router.HandleFunc("/by-brand/{brandid}",)
-	router.HandleFunc("/user/cart", cart)
+	router.HandleFunc("/user/cart", products.Cart)
 	// router.HandleFunc("/user/cart/checkout", cartCheckout)
 	// router.HandleFunc(“/user/order-confirmation”,)
 
 	//UI URLs for Category Management (Admin)
-	router.HandleFunc("/categories/all", catMain)
-	router.HandleFunc("/category/new", catAdd)
-	router.HandleFunc("/category/{categoryid}", catDetail)
-	router.HandleFunc("/category/update/{categoryid}", catUpdate)
-	router.HandleFunc("/category/delete/{categoryid}", catDelete)
+	router.HandleFunc("/categories/all", products.CatMain)
+	router.HandleFunc("/category/new", products.CatAdd)
+	router.HandleFunc("/category/{categoryid}", products.CatDetail)
+	router.HandleFunc("/category/update/{categoryid}", products.CatUpdate)
+	router.HandleFunc("/category/delete/{categoryid}", products.CatDelete)
 
 	//UI URLs for Brand Management (Admin)
-	router.HandleFunc("/brands/all", brandMain)
-	router.HandleFunc("/brand/new", brandAdd)
-	router.HandleFunc("/brand/{brandid}", brandDetail)
-	router.HandleFunc("/brand/update/{brandid}", brandUpdate)
-	router.HandleFunc("/brand/delete/{brandid}", brandDelete)
+	router.HandleFunc("/brands/all", products.BrandMain)
+	router.HandleFunc("/brand/new", products.BrandAdd)
+	router.HandleFunc("/brand/{brandid}", products.BrandDetail)
+	router.HandleFunc("/brand/update/{brandid}", products.BrandUpdate)
+	router.HandleFunc("/brand/delete/{brandid}", products.BrandDelete)
 
 	// server config
 	serverConfig := http.Server{

@@ -151,7 +151,7 @@ func GenerateJWT() (string, error) {
 
 func main() {
 	fmt.Println(key)
-	fmt.Println(mySigningKey)
+	//fmt.Println(mySigningKey)
 	// test, err := CreateToken()
 	// if err != nil {
 

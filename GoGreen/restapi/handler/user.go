@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"goLive/GoGreen/restapi/data"
+	"GOGREEN/GoGreen/restapi/data"
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
