@@ -15,12 +15,18 @@
     <td><h3>Total</h3></td>
 
 </tr>
-{{range .CartData}} 
+{{range $index, $element := .CartData}} 
 <tr>
     <td><a href="/{{.ID}}">{{.Name}}</a></td>
     <td>{{.QuantityToBuy}}</td>
     <td>${{.Price}}</td>
     <td>${{.ItemTotal}}</td>
+    <td>
+        <form method="post">
+            <input type="hidden" name="cartIndex" value="{{$index}}">
+            <input type="submit" name="submit" value="Remove From Cart">
+        </form>
+    </td>
 </tr>
 {{end}}
 
@@ -37,5 +43,9 @@
 <form method="post">
 <input type="submit" name="submit" value="Checkout">
 </form>
+<form method="post" action="/">
+<input type="submit" name="submit" value="Back">
+</form>
+
 </body>
 </html>

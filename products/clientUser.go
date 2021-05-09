@@ -202,8 +202,17 @@ func Cart(w http.ResponseWriter, r *http.Request) {
 
 	userCart := shopMap[sessionID]
 
-	if r.Method == http.MethodPost {
+	if r.Method == http.MethodPost && r.FormValue("submit") == "Remove From Cart" {
+		cartIndex, _ := strconv.Atoi(r.FormValue("cartIndex"))
 
+		// copy(userCart[cartIndex:], userCart[cartIndex+1:])
+		// userCart[len(userCart)-1] = CartItem{}
+		// userCart = userCart[:len(userCart)-1]
+
+		userCart = append(userCart[:cartIndex], userCart[cartIndex+1:]...)
+		shopMap[sessionID] = userCart
+
+	} else if r.Method == http.MethodPost && r.FormValue("submit") == "Checkout" {
 		jsonValue, err := json.Marshal(userCart)
 
 		if err != nil {
@@ -256,10 +265,6 @@ func Cart(w http.ResponseWriter, r *http.Request) {
 		CartData:  cartWithPrice,
 		CartTotal: cartTotal,
 	}
-
-	fmt.Println("============================================================")
-	fmt.Println(shopMap[sessionID])
-	fmt.Println("============================================================")
 
 	tpl.ExecuteTemplate(w, "cart.gohtml", templateData)
 }

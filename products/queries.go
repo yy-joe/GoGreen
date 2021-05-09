@@ -286,7 +286,7 @@ func deleteProducts(db *sql.DB, ID int) error {
 	return err
 }
 
-func main_queries() {
+func MainQueries() {
 	//Use mysql as driverName and a valid DSN as data source name
 	db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/GoGreen")
 
