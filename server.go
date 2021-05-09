@@ -23,16 +23,6 @@ func init() {
 	handler.TestData()
 }
 
-func homePage(rw http.ResponseWriter, r *http.Request) {
-	log.Println("Hello nigga")
-	rw.Header().Set("Content-Type", "application/json")
-	d, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		fmt.Println("error: ", err)
-	}
-	fmt.Fprintf(rw, "hello %s", d)
-}
-
 func main() {
 	// Load env file
 	err := godotenv.Load()
@@ -80,10 +70,6 @@ func main() {
 			os.Exit(1)
 		}
 	}()
-
-	// db, err := handler.ConnectDB()
-	// data.GetUsers(db)
-	// serverConfig.ListenAndServe()
 	// Signal notification channel
 	// signalChannel := make(chan os.Signal)
 	signalChannel := make(chan os.Signal, 1)
