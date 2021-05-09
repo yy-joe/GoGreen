@@ -181,7 +181,7 @@ func ProdAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("prodAdd: new page laod, skip form submission. Getting list of categories and brands.")
+	fmt.Println("prodAdd: new page load, skip form submission. Getting list of categories and brands.")
 	//get the categories & brands
 	catsAndBrands := struct {
 		Categories []Category
@@ -197,6 +197,8 @@ func ProdAdd(w http.ResponseWriter, r *http.Request) {
 func ProdUpdate(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	productID := params["productid"]
+
+	productIntID, _ := strconv.Atoi(productID)
 
 	if r.Method == http.MethodPost {
 		//update the product at database
@@ -242,6 +244,27 @@ func ProdUpdate(w http.ResponseWriter, r *http.Request) {
 		if res.StatusCode != 200 {
 			return
 		}
+
+		reqBody, err := ioutil.ReadAll(res.Body)
+		json.Unmarshal(reqBody, &updatedProduct)
+
+		for i, v := range storedProducts {
+			if v.ID == productIntID {
+				storedProducts[i].Name = updatedProduct.Name
+				storedProducts[i].Image = updatedProduct.Image
+				storedProducts[i].DescShort = updatedProduct.DescShort
+				storedProducts[i].DescLong = updatedProduct.DescLong
+				storedProducts[i].DateModified = updatedProduct.DateModified
+				storedProducts[i].Price = updatedProduct.Price
+				storedProducts[i].Quantity = updatedProduct.Quantity
+				storedProducts[i].Condition = updatedProduct.Condition
+				storedProducts[i].CategoryID = updatedProduct.CategoryID
+				storedProducts[i].BrandID = updatedProduct.BrandID
+				storedProducts[i].Status = updatedProduct.Status
+			}
+		}
+
+		fmt.Println("!!!! Updated storedProducts :", storedProducts)
 
 		//direct user back to the main products page
 		byStatus := r.FormValue("byStatus")
@@ -404,14 +427,16 @@ func CatUpdate(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	catID := params["categoryid"]
 
+	catIntID, _ := strconv.Atoi(catID)
+
 	if r.Method == http.MethodPost {
-		newCategory := Category{
+		updatedCategory := Category{
 			ID:          0,
 			Name:        r.FormValue("Name"),
 			Description: r.FormValue("Description"),
 		}
 
-		jsonValue, err := json.Marshal(newCategory)
+		jsonValue, err := json.Marshal(updatedCategory)
 
 		url := baseURL + "category/" + catID
 
@@ -431,6 +456,18 @@ func CatUpdate(w http.ResponseWriter, r *http.Request) {
 		if res.StatusCode != 200 {
 			return
 		}
+
+		reqBody, err := ioutil.ReadAll(res.Body)
+		json.Unmarshal(reqBody, &updatedCategory)
+
+		for i, v := range storedCategories {
+			if v.ID == catIntID {
+				storedCategories[i].Name = updatedCategory.Name
+				storedCategories[i].Description = updatedCategory.Description
+			}
+		}
+
+		fmt.Println("!!!! Updated storedCategories :", storedCategories)
 
 		//direct user back to the main products page
 		http.Redirect(w, r, "/categories/all", http.StatusSeeOther)
@@ -565,14 +602,16 @@ func BrandUpdate(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	brandID := params["brandid"]
 
+	brandIntID, _ := strconv.Atoi(brandID)
+
 	if r.Method == http.MethodPost {
-		newBrand := Brand{
+		updatedBrand := Brand{
 			ID:          0,
 			Name:        r.FormValue("Name"),
 			Description: r.FormValue("Description"),
 		}
 
-		jsonValue, err := json.Marshal(newBrand)
+		jsonValue, err := json.Marshal(updatedBrand)
 
 		url := baseURL + "brand/" + brandID
 
@@ -592,6 +631,18 @@ func BrandUpdate(w http.ResponseWriter, r *http.Request) {
 		if res.StatusCode != 200 {
 			return
 		}
+
+		reqBody, err := ioutil.ReadAll(res.Body)
+		json.Unmarshal(reqBody, &updatedBrand)
+
+		for i, v := range storedBrands {
+			if v.ID == brandIntID {
+				storedBrands[i].Name = updatedBrand.Name
+				storedBrands[i].Description = updatedBrand.Description
+			}
+		}
+
+		fmt.Println("!!!! Updated storedBrands :", storedBrands)
 
 		//direct user back to the main products page
 		http.Redirect(w, r, "/brands/all", http.StatusSeeOther)

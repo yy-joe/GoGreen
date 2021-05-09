@@ -253,8 +253,8 @@ func addProducts(db *sql.DB, Name string, Image string, DescShort string, DescLo
 	return int(lastInsertId), err
 }
 
-func editProducts(db *sql.DB, Name string, Image string, DescShort string, DescLong string, Price float64, Quantity int, Condition string, CategoryID int, BrandID int, Status string, ID int) error {
-	query := fmt.Sprintf("UPDATE Products SET Name='%s', Image='%s', Desc_Short='%s', Desc_Long='%s', Date_Modified=curdate(), Price=%.2f, Quantity=%d, `Condition`='%s', Category_ID=%d, Brand_ID=%d, Status='%s' WHERE ID=%d", Name, Image, DescShort, DescLong, Price, Quantity, Condition, CategoryID, BrandID, Status, ID)
+func editProducts(db *sql.DB, Name string, Image string, DescShort string, DescLong string, DateModified string, Price float64, Quantity int, Condition string, CategoryID int, BrandID int, Status string, ID int) error {
+	query := fmt.Sprintf("UPDATE Products SET Name='%s', Image='%s', Desc_Short='%s', Desc_Long='%s', Date_Modified='%s', Price=%.2f, Quantity=%d, `Condition`='%s', Category_ID=%d, Brand_ID=%d, Status='%s' WHERE ID=%d", Name, Image, DescShort, DescLong, DateModified, Price, Quantity, Condition, CategoryID, BrandID, Status, ID)
 
 	_, err := db.Exec(query)
 

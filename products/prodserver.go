@@ -131,6 +131,9 @@ func Allproducts(w http.ResponseWriter, r *http.Request) {
 }
 
 func ProductCRUD(w http.ResponseWriter, r *http.Request) {
+	var curTime = time.Now()
+	var curDate = curTime.Format("2006-01-02")
+
 	params := mux.Vars(r)
 
 	//open the database
@@ -182,8 +185,8 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 			//convert JSON to object
 			json.Unmarshal(reqBody, &newProduct)
 
-			var curTime = time.Now()
-			var curDate = curTime.Format("2006-01-02")
+			// var curTime = time.Now()
+			// var curDate = curTime.Format("2006-01-02")
 			newProduct.DateCreated = curDate
 			newProduct.DateModified = curDate
 
@@ -213,9 +216,11 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 			json.Unmarshal(reqBody, &updatedProduct)
 		}
 
+		updatedProduct.DateModified = curDate
+
 		//product already exists, update product
 		productID, _ := strconv.Atoi(params["productid"])
-		err = editProducts(db, updatedProduct.Name, updatedProduct.Image, updatedProduct.DescShort, updatedProduct.DescLong, updatedProduct.Price, updatedProduct.Quantity, updatedProduct.Condition, updatedProduct.CategoryID, updatedProduct.BrandID, updatedProduct.Status, productID)
+		err = editProducts(db, updatedProduct.Name, updatedProduct.Image, updatedProduct.DescShort, updatedProduct.DescLong, updatedProduct.DateModified, updatedProduct.Price, updatedProduct.Quantity, updatedProduct.Condition, updatedProduct.CategoryID, updatedProduct.BrandID, updatedProduct.Status, productID)
 
 		if err != nil {
 			Trace.Println(err)
@@ -226,6 +231,7 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 		// w.WriteHeader(http.StatusAccepted)
 		// w.Write([]byte("202 - product updated: " + params["productid"]))
 
+		json.NewEncoder(w).Encode(updatedProduct)
 	}
 }
 
