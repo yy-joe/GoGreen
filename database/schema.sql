@@ -11,24 +11,21 @@ create table `Users` (
     `Address` varchar(100) not null, 
     `Contact` varchar(8) not null,
     `Date_Joined` date not null,
-    Primary Key (`ID`), 
-    Unique Key (`Username`)
+    Primary Key (`ID`)
 );
 
 CREATE TABLE `Categories` (
   `ID` int NOT NULL auto_increment,
   `Name` varchar(200) NOT NULL,
   `Description` varchar(500),
-  Primary Key (`ID`),
-  Unique Key (`Name`)
+  Primary Key (`ID`)
 );
 
 CREATE TABLE `Brands` (
   `ID` int NOT NULL auto_increment,
   `Name` varchar(200) NOT NULL,
   `Description` varchar(500),
-  Primary Key (`ID`),
-  Unique Key (`Name`)
+  Primary Key (`ID`)
 );
 
 CREATE TABLE `Products` (
@@ -41,15 +38,13 @@ CREATE TABLE `Products` (
   `Date_Modified` date not null,
   `Price` decimal(10,2) NOT NULL,
   `Quantity` int NOT NULL,
-  `Quantity_Sold` int NOT NULL,
   `Condition` varchar(10) NOT NULL,
   `Category_ID` int NOT NULL,
   `Brand_ID` int NOT NULL,
   `Status` varchar(100) NOT NULL, /*Status can be: live, sold out, or discontinued*/
   Primary Key (`ID`),
   Foreign Key(`Category_ID`) references Categories(`ID`) on update cascade on delete cascade,
-  Foreign Key(`Brand_ID`) references Brands(`ID`) on update cascade on delete cascade,
-  Unique Key (`Name`)
+  Foreign Key(`Brand_ID`) references Brands(`ID`) on update cascade on delete cascade
 );
 
 CREATE TABLE `Customer_Orders` (

@@ -1,4 +1,4 @@
-package main
+package products
 
 import (
 	"database/sql"
@@ -262,7 +262,7 @@ func editProducts(db *sql.DB, Name string, Image string, DescShort string, DescL
 	return err
 }
 
-func editProductQuantity(db *sql.DB, Quantity int, QuantitySold int, ID int) error{
+func editProductQuantity(db *sql.DB, Quantity int, QuantitySold int, ID int) error {
 	query := fmt.Sprintf("UPDATE Products SET Quantity=%d, Quantity_Sold=%d WHERE ID=%d", Quantity, QuantitySold, ID)
 
 	_, err := db.Exec(query)

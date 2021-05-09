@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
-	"text/template"
 
 	"github.com/gorilla/mux"
 )
@@ -19,7 +19,7 @@ var (
 )
 
 func init() {
-	tpl = template.Must(template.ParseGlob("templates/*"))
+	tpl = template.Must(template.ParseGlob("products/templates/*"))
 }
 
 func openDB() (db *sql.DB, err error) {

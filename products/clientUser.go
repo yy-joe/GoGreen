@@ -1,11 +1,11 @@
-package main
+package products
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -55,7 +55,7 @@ func initGlobalVars() {
 
 // const baseURL = "http://localhost:5000/api/v1/admin/"
 
-func index(w http.ResponseWriter, r *http.Request) {
+func Index(w http.ResponseWriter, r *http.Request) {
 	initGlobalVars()
 
 	fmt.Println("storedBrands=", storedBrands)
@@ -107,7 +107,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func details(w http.ResponseWriter, r *http.Request) {
+func Details(w http.ResponseWriter, r *http.Request) {
 	//get the userID/ sessionID
 
 	//check if global vars are initialized.
@@ -153,14 +153,19 @@ func details(w http.ResponseWriter, r *http.Request) {
 		//update shopping cart with these values
 		userCart = shopMap[sessionID]
 
-		for _, v := range userCart {
+		for i, v := range userCart {
 			if v.ID == id {
 				addedToCart = true
 
-				if v.QuantityToBuy + qty > product.Quantity {
+				if v.QuantityToBuy+qty > product.Quantity {
 					addedToCartMsg = "Quantity Exceeded! Failed to add to cart."
 				} else {
 					v.QuantityToBuy += qty
+					fmt.Println("Adding same product: ", userCart[i])
+					userCart[i] = v
+					fmt.Println("Adding same product - after assigning v to userCart[i]: ", userCart[i])
+
+					addedToCartMsg = fmt.Sprintf("%d are added to your cart.", qty)
 				}
 			}
 		}
@@ -192,7 +197,7 @@ func details(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "details.gohtml", templateData)
 }
 
-func cart(w http.ResponseWriter, r *http.Request) {
+func Cart(w http.ResponseWriter, r *http.Request) {
 	//get the userID/ sessionID
 
 	userCart := shopMap[sessionID]
@@ -215,7 +220,6 @@ func cart(w http.ResponseWriter, r *http.Request) {
 
 		req.Header.Set("Content-Type", "application/json")
 
-		client := &http.Client{}
 		res, err := client.Do(req)
 
 		if err != nil {
@@ -231,27 +235,27 @@ func cart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	 type cartItemWithPrice struct {
-        ID            int
-        Name          string
-        Price         float64
-        QuantityToBuy int
-        ItemTotal     float64
-    }
-    cartWithPrice := []cartItemWithPrice{}
-    var cartTotal float64
-    for _, v := range userCart {
-        itemTotal := v.Price * float64(v.QuantityToBuy)
-        cartTotal += itemTotal
-        cartWithPrice = append(cartWithPrice, cartItemWithPrice{v.ID, v.Name, v.Price, v.QuantityToBuy, itemTotal})
-    }
-    templateData := struct {
-        CartData  []cartItemWithPrice
-        CartTotal float64
-    }{
-        CartData:  cartWithPrice,
-        CartTotal: cartTotal,
-    }
+	type cartItemWithPrice struct {
+		ID            int
+		Name          string
+		Price         float64
+		QuantityToBuy int
+		ItemTotal     float64
+	}
+	cartWithPrice := []cartItemWithPrice{}
+	var cartTotal float64
+	for _, v := range userCart {
+		itemTotal := v.Price * float64(v.QuantityToBuy)
+		cartTotal += itemTotal
+		cartWithPrice = append(cartWithPrice, cartItemWithPrice{v.ID, v.Name, v.Price, v.QuantityToBuy, itemTotal})
+	}
+	templateData := struct {
+		CartData  []cartItemWithPrice
+		CartTotal float64
+	}{
+		CartData:  cartWithPrice,
+		CartTotal: cartTotal,
+	}
 
 	fmt.Println("============================================================")
 	fmt.Println(shopMap[sessionID])
