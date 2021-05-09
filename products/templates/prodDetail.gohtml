@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Details</title>
+</head>
+<body>
+
+<h2>Product Details</h2>
+<form method="post" action="/product/update/{{.Product.ID}}">
+    <label for="name">Product Name:</label>    
+    <input type="text" name="Name" id="name" value="{{.Product.Name}}" required><br/>
+    <label for="descShort">Short Description:</label>
+    <input type="text" name="DescShort" id="descShort" value="{{.Product.DescShort}}" required><br/>
+    <label for="descLong">Long Description:</label>
+    <textarea name="DescLong" id="descLong" rows="4" cols="50" placeholder="(optional)">{{.Product.DescLong}}</textarea><br/>
+    <label for="price">Price:</label>
+    <input type="text" name="Price" id="price" value="{{.Product.Price}}" required><br/>
+    <label for="Quantity">Quantity:</label>
+    <input type="text" name="Quantity" id="quantity" value="{{.Product.Quantity}}" required><br/>
+
+    <p>Condition:
+    {{if eq .Product.Condition "New"}}
+        <label for="new">New</label>
+        <input type="radio" name="Condition" id="new" value="New" checked required>
+        <label for="used">Used</label>
+        <input type="radio" name="Condition" id="used" value="Used" required>
+    {{else}}
+        <label for="new">New</label>
+        <input type="radio" name="Condition" value="New" required>
+        <label for="used">Used</label>
+        <input type="radio" name="Condition" value="Used" checked required>
+    {{end}}
+
+    <br/>
+
+    <label for="categories">Categories:</label>
+    <select name="CategoryID" id="categories" required>
+    {{range $index, $element := .Categories}} 
+        {{if eq $.Product.CategoryID $element.ID}}
+            <option value="{{$element.ID}}" selected> {{$element.Name}} </option>
+        {{else}}
+            <option value="{{$element.ID}}"> {{$element.Name}} </option>
+        {{end}}
+    {{end}}
+    </select>
+
+    <br/>
+
+    <label for="brands">Brand:</label>
+    <select name="BrandID" id="brands">
+    {{range $index, $element := .Brands}} 
+        {{if eq $.Product.BrandID $element.ID}}
+            <option value="{{$element.ID}}" selected> {{$element.Name}} </option>
+        {{else}}
+            <option value="{{$element.ID}}"> {{$element.Name}} </option>
+        {{end}}
+    {{end}}
+    </select>
+
+    <br/>
+
+    <label for="status">Status:</label>
+    <select name="Status" id="status">
+        {{if eq .Product.Status "active"}}
+            <option value="active" selected> Active </option>
+            <option value="unlisted"> Unlisted </option>
+        {{else}}
+            <option value="active"> Active </option>
+            <option value="unlisted" selected> Unlisted </option>
+        {{end}}
+    </select>
+
+    <br/>
+    
+    <input type="submit" value="Update">
+</form>
+<form method="post" action="/product/delete/{{.Product.ID}}">
+    <input type="submit" value="Delete">
+</form>
+
+</body>
+</html>
