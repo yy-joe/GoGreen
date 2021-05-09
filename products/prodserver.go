@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -181,8 +182,13 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 			//convert JSON to object
 			json.Unmarshal(reqBody, &newProduct)
 
+			var curTime = time.Now()
+			var curDate = curTime.Format("2006-01-02")
+			newProduct.DateCreated = curDate
+			newProduct.DateModified = curDate
+
 			//check if product exists; add only if product does not exist
-			err := addProducts(db, newProduct.Name, newProduct.Image, newProduct.DescShort, newProduct.DescLong, newProduct.Price, newProduct.Quantity, newProduct.Condition, newProduct.CategoryID, newProduct.BrandID, newProduct.Status)
+			newProduct.ID, err = addProducts(db, newProduct.Name, newProduct.Image, newProduct.DescShort, newProduct.DescLong, newProduct.DateCreated, newProduct.DateModified, newProduct.Price, newProduct.Quantity, newProduct.Condition, newProduct.CategoryID, newProduct.BrandID, newProduct.Status)
 			if err != nil {
 				Trace.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
@@ -191,6 +197,7 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 			}
 			// w.WriteHeader(http.StatusCreated)
 			// w.Write([]byte("201 - product added: " + params["productid"]))
+			json.NewEncoder(w).Encode(newProduct)
 			fmt.Println("Product successfully added.")
 		}
 	} else if r.Method == "PUT" { //PUT is for creating or updating existing product
@@ -292,7 +299,7 @@ func ServerAddBrand(w http.ResponseWriter, r *http.Request) {
 		json.Unmarshal(reqBody, &newBrand)
 
 		//check if product exists; add only if product does not exist
-		err = addBrand(db, newBrand.Name, newBrand.Description)
+		newBrand.ID, err = addBrand(db, newBrand.Name, newBrand.Description)
 
 		if err != nil {
 			Trace.Println(err)
@@ -301,7 +308,9 @@ func ServerAddBrand(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		json.NewEncoder(w).Encode(newBrand)
 		fmt.Println("Brand successfully added.")
+
 	}
 }
 
@@ -437,7 +446,7 @@ func ServerAddCategory(w http.ResponseWriter, r *http.Request) {
 	} else {
 		json.Unmarshal(reqBody, &newCategory)
 
-		err := addCategory(db, newCategory.Name, newCategory.Description)
+		newCategory.ID, err = addCategory(db, newCategory.Name, newCategory.Description)
 
 		if err != nil {
 			Trace.Println(err)
@@ -446,7 +455,7 @@ func ServerAddCategory(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
+	json.NewEncoder(w).Encode(newCategory)
 	fmt.Println("Category successfully added.")
 }
 

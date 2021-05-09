@@ -165,10 +165,16 @@ func ProdAdd(w http.ResponseWriter, r *http.Request) {
 		url := baseURL + "product"
 		fmt.Println(url)
 		// _, err = http.Post(url, "application/json", bytes.NewBuffer(jsonValue))
-		_, err = client.Post(url, "application/json", bytes.NewBuffer(jsonValue))
+		res, err := client.Post(url, "application/json", bytes.NewBuffer(jsonValue))
 		if err != nil {
 			fmt.Printf("The HTTP request failed with error %s\n", err)
 		}
+
+		//update global var storedProducts
+		reqBody, err := ioutil.ReadAll(res.Body)
+		json.Unmarshal(reqBody, &newProduct)
+		storedProducts = append(storedProducts, newProduct)
+		fmt.Println("Updated storedProducts :", storedProducts)
 
 		//direct user back to the main products page
 		http.Redirect(w, r, "/products/all", http.StatusSeeOther)
@@ -376,11 +382,17 @@ func CatAdd(w http.ResponseWriter, r *http.Request) {
 
 		url := baseURL + "category"
 
-		_, err = client.Post(url, "application/json", bytes.NewBuffer(jsonValue))
+		res, err := client.Post(url, "application/json", bytes.NewBuffer(jsonValue))
 
 		if err != nil {
 			fmt.Printf("The HTTP request failed with error %s\n", err)
 		}
+
+		//update the global variable storedCategories
+		reqBody, err := ioutil.ReadAll(res.Body)
+		json.Unmarshal(reqBody, &newCategory)
+		storedCategories = append(storedCategories, newCategory)
+		fmt.Println("Updated storedCategories :", storedCategories)
 
 		http.Redirect(w, r, "/categories/all", http.StatusSeeOther)
 	}
@@ -531,11 +543,17 @@ func BrandAdd(w http.ResponseWriter, r *http.Request) {
 
 		url := baseURL + "brand"
 
-		_, err = client.Post(url, "application/json", bytes.NewBuffer(jsonValue))
+		res, err := client.Post(url, "application/json", bytes.NewBuffer(jsonValue))
 
 		if err != nil {
 			fmt.Printf("The HTTP request failed with error %s\n", err)
 		}
+
+		//update the global variable storedBrands
+		reqBody, err := ioutil.ReadAll(res.Body)
+		json.Unmarshal(reqBody, &newBrand)
+		storedBrands = append(storedBrands, newBrand)
+		fmt.Println("Updated storedBrands :", storedBrands)
 
 		http.Redirect(w, r, "/brands/all", http.StatusSeeOther)
 	}
