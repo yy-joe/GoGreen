@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/gorilla/mux"
 )
@@ -22,6 +23,8 @@ var client = &http.Client{
 		},
 	},
 }
+
+var mutex sync.Mutex
 
 const baseURL = "https://localhost:3000/api/v1/admin/"
 
@@ -55,19 +58,71 @@ func ProdMain(w http.ResponseWriter, r *http.Request) {
 
 	switch sortKey {
 	case "":
-		tpl.ExecuteTemplate(w, "prodMain.gohtml", products)
+		tpl.ExecuteTemplate(w, "prodMain.gohtml", formatProdTplData(products))
 	case "Price":
-		tpl.ExecuteTemplate(w, "prodMain.gohtml", productsByPrice)
+		tpl.ExecuteTemplate(w, "prodMain.gohtml", formatProdTplData(productsByPrice))
 
 	case "Quantity":
-		tpl.ExecuteTemplate(w, "prodMain.gohtml", productsByQuantity)
+		tpl.ExecuteTemplate(w, "prodMain.gohtml", formatProdTplData(productsByQuantity))
 
 	default:
 		sortedProducts := sortProducts(products, sortKey)
 		fmt.Println(sortedProducts)
 
-		tpl.ExecuteTemplate(w, "prodMain.gohtml", sortedProducts)
+		tpl.ExecuteTemplate(w, "prodMain.gohtml", formatProdTplData(sortedProducts))
 	}
+}
+
+type prodTpl struct {
+	ID           int
+	Name         string
+	Image        string
+	DescShort    string
+	DescLong     string
+	DateCreated  string
+	DateModified string
+	Price        float64
+	Quantity     int
+	QuantitySold int
+	Condition    string
+	CategoryName string
+	BrandName    string
+	Status       string
+}
+
+func formatProdTplData(products []Product) (productsTpl []prodTpl) {
+	storedCatMap := make(map[int]string)
+	storedBrandMap := make(map[int]string)
+
+	//populate the maps
+	for _, v := range storedCategories {
+		storedCatMap[v.ID] = v.Name
+	}
+	for _, v := range storedBrands {
+		storedBrandMap[v.ID] = v.Name
+	}
+	fmt.Println("------storedCatMap = ", storedCatMap)
+	fmt.Println("------storedBrandMap = ", storedBrandMap)
+
+	for _, v := range products {
+		var prod prodTpl
+		prod.ID = v.ID
+		prod.Name = v.Name
+		prod.Image = v.Image
+		prod.DescShort = v.DescShort
+		prod.DescLong = v.DescLong
+		prod.DateCreated = v.DateCreated
+		prod.DateModified = v.DateModified
+		prod.Price = v.Price
+		prod.Quantity = v.Quantity
+		prod.Condition = v.Condition
+		prod.CategoryName = storedCatMap[v.CategoryID]
+		prod.BrandName = storedBrandMap[v.BrandID]
+		prod.Status = v.Status
+		productsTpl = append(productsTpl, prod)
+	}
+	fmt.Println("------productsTpl = ", productsTpl)
+	return
 }
 
 func sortProducts(products []Product, sortKey string) []Product {
@@ -173,7 +228,11 @@ func ProdAdd(w http.ResponseWriter, r *http.Request) {
 		//update global var storedProducts
 		reqBody, err := ioutil.ReadAll(res.Body)
 		json.Unmarshal(reqBody, &newProduct)
-		storedProducts = append(storedProducts, newProduct)
+		mutex.Lock()
+		{
+			storedProducts = append(storedProducts, newProduct)
+		}
+		mutex.Unlock()
 		fmt.Println("Updated storedProducts :", storedProducts)
 
 		//direct user back to the main products page
@@ -250,17 +309,22 @@ func ProdUpdate(w http.ResponseWriter, r *http.Request) {
 
 		for i, v := range storedProducts {
 			if v.ID == productIntID {
-				storedProducts[i].Name = updatedProduct.Name
-				storedProducts[i].Image = updatedProduct.Image
-				storedProducts[i].DescShort = updatedProduct.DescShort
-				storedProducts[i].DescLong = updatedProduct.DescLong
-				storedProducts[i].DateModified = updatedProduct.DateModified
-				storedProducts[i].Price = updatedProduct.Price
-				storedProducts[i].Quantity = updatedProduct.Quantity
-				storedProducts[i].Condition = updatedProduct.Condition
-				storedProducts[i].CategoryID = updatedProduct.CategoryID
-				storedProducts[i].BrandID = updatedProduct.BrandID
-				storedProducts[i].Status = updatedProduct.Status
+				mutex.Lock()
+				{
+					storedProducts[i].Name = updatedProduct.Name
+					storedProducts[i].Image = updatedProduct.Image
+					storedProducts[i].DescShort = updatedProduct.DescShort
+					storedProducts[i].DescLong = updatedProduct.DescLong
+					storedProducts[i].DateModified = updatedProduct.DateModified
+					storedProducts[i].Price = updatedProduct.Price
+					storedProducts[i].Quantity = updatedProduct.Quantity
+					storedProducts[i].Condition = updatedProduct.Condition
+					storedProducts[i].CategoryID = updatedProduct.CategoryID
+					storedProducts[i].BrandID = updatedProduct.BrandID
+					storedProducts[i].Status = updatedProduct.Status
+				}
+				mutex.Unlock()
+				break
 			}
 		}
 
@@ -321,6 +385,7 @@ func ProdDetail(w http.ResponseWriter, r *http.Request) {
 func ProdDelete(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	productID := params["productid"]
+	prodIntID, _ := strconv.Atoi(productID)
 
 	url := baseURL + "product/" + productID
 
@@ -338,6 +403,19 @@ func ProdDelete(w http.ResponseWriter, r *http.Request) {
 	if res.StatusCode != 200 {
 		return
 	}
+
+	//update global vars
+	for i, v := range storedProducts {
+		if v.ID == prodIntID {
+			mutex.Lock()
+			{
+				storedProducts = append(storedProducts[:i], storedProducts[i+1:]...)
+			}
+			mutex.Unlock()
+			break
+		}
+	}
+	fmt.Println("Deleted a product : ", storedProducts)
 
 	//direct user back to the main products page
 	http.Redirect(w, r, "/products/all", http.StatusSeeOther)
@@ -414,7 +492,11 @@ func CatAdd(w http.ResponseWriter, r *http.Request) {
 		//update the global variable storedCategories
 		reqBody, err := ioutil.ReadAll(res.Body)
 		json.Unmarshal(reqBody, &newCategory)
-		storedCategories = append(storedCategories, newCategory)
+		mutex.Lock()
+		{
+			storedCategories = append(storedCategories, newCategory)
+		}
+		mutex.Unlock()
 		fmt.Println("Updated storedCategories :", storedCategories)
 
 		http.Redirect(w, r, "/categories/all", http.StatusSeeOther)
@@ -462,8 +544,13 @@ func CatUpdate(w http.ResponseWriter, r *http.Request) {
 
 		for i, v := range storedCategories {
 			if v.ID == catIntID {
-				storedCategories[i].Name = updatedCategory.Name
-				storedCategories[i].Description = updatedCategory.Description
+				mutex.Lock()
+				{
+					storedCategories[i].Name = updatedCategory.Name
+					storedCategories[i].Description = updatedCategory.Description
+				}
+				mutex.Unlock()
+				break
 			}
 		}
 
@@ -477,6 +564,7 @@ func CatUpdate(w http.ResponseWriter, r *http.Request) {
 func CatDelete(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	catID := params["categoryid"]
+	catIntID, _ := strconv.Atoi(catID)
 
 	url := baseURL + "category/" + catID
 
@@ -494,6 +582,19 @@ func CatDelete(w http.ResponseWriter, r *http.Request) {
 	if res.StatusCode != 200 {
 		return
 	}
+
+	//update global vars
+	for i, v := range storedCategories {
+		if v.ID == catIntID {
+			mutex.Lock()
+			{
+				storedCategories = append(storedCategories[:i], storedCategories[i+1:]...)
+			}
+			mutex.Unlock()
+			break
+		}
+	}
+	fmt.Println("Deleted a category : ", storedCategories)
 
 	//direct user back to the main products page
 	http.Redirect(w, r, "/categories/all", http.StatusSeeOther)
@@ -589,7 +690,11 @@ func BrandAdd(w http.ResponseWriter, r *http.Request) {
 		//update the global variable storedBrands
 		reqBody, err := ioutil.ReadAll(res.Body)
 		json.Unmarshal(reqBody, &newBrand)
-		storedBrands = append(storedBrands, newBrand)
+		mutex.Lock()
+		{
+			storedBrands = append(storedBrands, newBrand)
+		}
+		mutex.Unlock()
 		fmt.Println("Updated storedBrands :", storedBrands)
 
 		http.Redirect(w, r, "/brands/all", http.StatusSeeOther)
@@ -637,8 +742,13 @@ func BrandUpdate(w http.ResponseWriter, r *http.Request) {
 
 		for i, v := range storedBrands {
 			if v.ID == brandIntID {
-				storedBrands[i].Name = updatedBrand.Name
-				storedBrands[i].Description = updatedBrand.Description
+				mutex.Lock()
+				{
+					storedBrands[i].Name = updatedBrand.Name
+					storedBrands[i].Description = updatedBrand.Description
+				}
+				mutex.Unlock()
+				break
 			}
 		}
 
@@ -652,6 +762,7 @@ func BrandUpdate(w http.ResponseWriter, r *http.Request) {
 func BrandDelete(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	brandID := params["brandid"]
+	brandIntID, _ := strconv.Atoi(brandID)
 
 	url := baseURL + "brand/" + brandID
 
@@ -669,6 +780,19 @@ func BrandDelete(w http.ResponseWriter, r *http.Request) {
 	if res.StatusCode != 200 {
 		return
 	}
+
+	//update global vars
+	for i, v := range storedBrands {
+		if v.ID == brandIntID {
+			mutex.Lock()
+			{
+				storedBrands = append(storedBrands[:i], storedBrands[i+1:]...)
+			}
+			mutex.Unlock()
+			break
+		}
+	}
+	fmt.Println("Deleted a brand : ", storedBrands)
 
 	//direct user back to the main products page
 	http.Redirect(w, r, "/brands/all", http.StatusSeeOther)

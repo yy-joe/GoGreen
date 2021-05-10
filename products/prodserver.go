@@ -131,8 +131,7 @@ func Allproducts(w http.ResponseWriter, r *http.Request) {
 }
 
 func ProductCRUD(w http.ResponseWriter, r *http.Request) {
-	var curTime = time.Now()
-	var curDate = curTime.Format("2006-01-02")
+	var curDate = time.Now().Format("2006-01-02")
 
 	params := mux.Vars(r)
 
