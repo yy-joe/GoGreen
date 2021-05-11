@@ -107,6 +107,47 @@ func GetUnlistedProducts(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(products)
 }
 
+func ServerEnquiry(w http.ResponseWriter, r *http.Request) {
+	//open the database
+	db, err := openDB()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("503 - Error opening the product database."))
+		Trace.Fatalln("Failed to open the product database.")
+	}
+	defer db.Close()
+	fmt.Println("The database is opened:", db)
+
+	//read the string sent to the service
+	enquiryData := struct {
+		Name        string
+		Email       string
+		EnquiryDate string
+		Message     string
+	}{}
+	reqBody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		w.Write([]byte("422 - Please supply product information in JSON format"))
+		return
+	} else {
+		//convert JSON to object
+		json.Unmarshal(reqBody, &enquiryData)
+
+		err := enquiry(db, enquiryData.Name, enquiryData.Email, time.Now().Format("2006-01-02"), enquiryData.Message)
+
+		if err != nil {
+			Trace.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("500 -Error updating product at database."))
+			return
+		}
+
+		fmt.Println("Enquiry successfully logged.")
+	}
+}
+
 func Allproducts(w http.ResponseWriter, r *http.Request) {
 
 	//open the database

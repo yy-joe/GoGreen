@@ -20,9 +20,9 @@ import (
 
 // "github.com/gorilla/mux"
 type UserInfo struct {
-	ID          int    `json:"id"`
+	ID          string `json:"id"`
 	Username    string `json:"username" validate:"required"`
-	Password    string `json:"password" validate:"required"`
+	Password    []byte `json:"password" validate:"required"`
 	Name        string `json:"name" validate:"required"`
 	Role        string `json:"role" validate:"required"`
 	Email       string `json:"email" validate:"required"`
@@ -49,21 +49,9 @@ var jsonMap map[string]UserInfo
 // store cookie session
 var mapSessions = map[string]string{}
 
-func getNextID() int {
-	// return the last index
-	var user UserInfo
-	lastIndex := 0
-	lastIndex = len(mapUsers)
-	fmt.Println("length: ", lastIndex)
-	user.ID = lastIndex
-
-	// last index + 1
-	return user.ID + 1
-}
-
 func TestData() {
 	users = make(map[string]UserInfo)
-	users["IOT201"] = UserInfo{ID: getNextID(), Username: "nigga", Password: "password", Name: "nigga", Role: "admin", Email: "nigga@gmail.com", Contact: 978787, Date_Joined: convertFormat}
+	users["IOT201"] = UserInfo{ID: "0", Username: "nigga", Password: []byte("password"), Name: "nigga", Role: "admin", Email: "nigga@gmail.com", Contact: 978787, Date_Joined: convertFormat}
 
 	mapCourse, _ := json.Marshal(users)
 	fmt.Println("Test Data:", string(mapCourse))
@@ -78,20 +66,27 @@ func SetCookie() {
 func LoginAcc(w http.ResponseWriter, r *http.Request) {
 	// if user login and username and pw match, add in this isAuthorised function which validate the token in the header
 	w.Header().Add("content-type", "application/json")
-	var login Login
-	_, err := http.Get("https://localhost:3000/api/v1/admin/users")
-	if err != nil {
-		fmt.Println("error reaching the get all users api", err)
+	db, dbErr := data.ConnectDB()
+	if dbErr != nil {
+		fmt.Println("error connect to db")
 	}
+	var login Login
 
 	data.FromJSON(&login, r.Body)
+	fmt.Println("login function")
+	loginDB, loginErr := data.Login(db, login.Username, login.Password)
+	if loginErr != nil {
+		fmt.Println("Error retrieving login info from db")
+	}
+	x := string(loginDB.Password)
+	fmt.Println(x)
 
-	searchUser, ok := mapUsers[login.Username] // string(bUsername
-	if !ok {
-		fmt.Println("User not found")
+	if login.Username != loginDB.Username {
+		fmt.Println("Username and/or password do not match")
 		return
 	}
-	errCompare := bcrypt.CompareHashAndPassword([]byte(searchUser.Password), []byte(login.Password))
+
+	errCompare := bcrypt.CompareHashAndPassword([]byte(loginDB.Password), []byte(login.Password))
 
 	if errCompare != nil {
 		fmt.Println("Username and/or password do not match", errCompare)
@@ -111,7 +106,7 @@ func LoginAcc(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("sessions: ", mapSessions)
 
 	bUsername, _ := bcrypt.GenerateFromPassword([]byte(login.Username), bcrypt.MinCost)
-	bPassword, _ := bcrypt.GenerateFromPassword((searchUser.Password), bcrypt.MinCost)
+	bPassword, _ := bcrypt.GenerateFromPassword([]byte(login.Password), bcrypt.MinCost)
 	login.Username = string(bUsername)
 	login.Password = string(bPassword)
 	data.ToJSON(&login, w)
@@ -124,6 +119,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	if DBerr != nil {
 		fmt.Println("Error connect to DB")
 	}
+
 	_, apiErr := http.Get("https://localhost:3000/api/v1/admin/users")
 	if apiErr != nil {
 		fmt.Println("error reaching the get all users api", apiErr)
@@ -133,9 +129,13 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("error")
 	}
-	user.ID = getNextID()
+	// sliceUsers, err := data.GetUsers(db)
 
-	// need to work on it validate username
+	// for _, v := range sliceUsers {
+
+	// }
+	fmt.Println("all users: ", mapUsers)
+	fmt.Println("username: ", user.Username)
 	if _, ok := mapUsers[user.Username]; ok {
 		fmt.Println("Username already taken")
 		http.Error(w, "Username already taken", http.StatusForbidden)
@@ -161,7 +161,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	convertString := strconv.Itoa(user.Contact)
 	user.Date_Joined = convertFormat
-	addErr := data.AddUser(db, strconv.Itoa(user.ID), user.Username, bPassword, user.Name, user.Role, user.Email, user.Address, convertString, user.Date_Joined)
+	addErr := data.AddUser(db, user.Username, bPassword, user.Name, user.Role, user.Email, user.Address, convertString, user.Date_Joined)
 	if addErr != nil {
 		fmt.Println("Unable to register new user", addErr)
 	}
@@ -184,7 +184,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 // For admin only
-// list all users
+// list all users DONE
 func ListAllUsers(w http.ResponseWriter, r *http.Request) {
 	db, err := data.ConnectDB()
 	if err != nil {
@@ -217,7 +217,6 @@ func ListAllUsers(w http.ResponseWriter, r *http.Request) {
 	// 	jsonMap[v.Username] = UserInfo{v.ID, v.Username, []byte(v.Password), v.Name, v.Role, v.Email, v.Address, v.Contact, v.Date_Joined}
 	// }
 	data.ToJSON(allUsers, w)
-	// json.NewEncoder(w).Encode(users)
 }
 
 // list userinfo need work on it important
@@ -248,14 +247,43 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 // Check if username exist or not then add
 func AddUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("content-type", "application/json")
+
+	_, apiErr := http.Get("https://localhost:3000/api/v1/admin/users")
+	if apiErr != nil {
+		fmt.Println("error reaching the get all users api", apiErr)
+	}
+
+	db, dbErr := data.ConnectDB()
+	if dbErr != nil {
+		fmt.Println("error connect to db")
+	}
+
 	var user UserInfo
 	data.FromJSON(&user, r.Body)
 	_, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println("error")
 	}
-	user.ID = getNextID()
+
+	if _, ok := mapUsers[user.Username]; ok {
+		fmt.Println("Username already taken")
+		http.Error(w, "Username already taken", http.StatusForbidden)
+		return
+	}
+
+	bPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MinCost)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	convertString := strconv.Itoa(user.Contact)
 	user.Date_Joined = convertFormat
+	fmt.Println(convertString, bPassword)
+	addErr := data.AddUser(db, user.Username, bPassword, user.Name, user.Role, user.Email, user.Address, convertString, user.Date_Joined)
+	if addErr != nil {
+		fmt.Println("Unable to register new user", addErr)
+	}
 	data.ToJSON(&user, w)
 }
 
@@ -301,7 +329,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("error DB")
 		return
 	}
-
+	w.Write([]byte("200 - User deleted"))
 	// Local
 	// if _, ok := users[params["username"]]; ok {
 	// 	fmt.Println("User found")
@@ -353,7 +381,7 @@ func EditAdminUser(w http.ResponseWriter, r *http.Request) {
 func TestAPI(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("content-type", "application/json")
 	users = make(map[string]UserInfo)
-	users["test"] = UserInfo{ID: getNextID(), Username: "nigga", Password: "password", Name: "nigga", Role: "admin", Email: "nigga@gmail.com", Contact: 978787, Date_Joined: convertFormat}
+	users["test"] = UserInfo{ID: "1", Username: "nigga", Password: []byte("password"), Name: "nigga", Role: "admin", Email: "nigga@gmail.com", Contact: 978787, Date_Joined: convertFormat}
 }
 
 func basicAuth(h http.HandlerFunc, Username string, Password string) http.HandlerFunc {

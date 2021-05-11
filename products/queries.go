@@ -41,6 +41,18 @@ type Category struct {
 	Description string
 }
 
+func enquiry(db *sql.DB, Name, Email, EnquiryDate, Message string) error {
+	query := fmt.Sprintf("INSERT INTO Enquiries (Name, Email, Enquiry_Date, Message) VALUES ('%s', '%s', '%s', '%s')", Name, Email, EnquiryDate, Message)
+
+	_, err := db.Exec(query)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return err
+}
+
 func getBrands(db *sql.DB) ([]Brand, error) {
 	results, err := db.Query("SELECT * FROM GoGreen.Brands")
 

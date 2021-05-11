@@ -74,6 +74,8 @@ func main() {
 	router.HandleFunc("/api/v1/admin/category/{categoryid}", products.ServerEditCategory).Methods("PUT")
 	router.HandleFunc("/api/v1/admin/category/{categoryid}", products.ServerDeleteCategory).Methods("DELETE")
 
+	router.HandleFunc("/api/v1/admin/enquiry", products.ServerEnquiry).Methods("POST")
+
 	// router.HandleFunc("/api/v1/admin/orders/customer-orders", )
 	// router.HandleFunc("/api/v1/admin/orders/product-orders", )
 
@@ -86,8 +88,11 @@ func main() {
 	router.HandleFunc("/product/delete/{productid}", products.ProdDelete)
 	router.HandleFunc("/product/{productid}", products.ProdDetail)
 
+	router.HandleFunc("/enquiry", products.Enquiry)
+
 	//UI URLS for Products/Shop (User)
 	router.HandleFunc("/", products.Index)
+	router.HandleFunc("/search", products.UserSearch)
 	router.HandleFunc("/{productid}", products.Details) //later rename
 	// router.HandleFunc("/by-category/{categoryid}",)
 	// router.HandleFunc("/by-brand/{brandid}",)

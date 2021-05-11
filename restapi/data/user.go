@@ -13,7 +13,7 @@ import (
 
 // Data model
 type User struct {
-	ID          int
+	ID          string
 	Username    string
 	Password    []byte
 	Name        string
@@ -35,7 +35,7 @@ var Trace *log.Logger
 // default admin acc
 var userList = []*User{
 	&User{
-		ID:          1,
+		ID:          "1",
 		Username:    "admin",
 		Password:    []byte("password"),
 		Name:        "admin",
@@ -103,8 +103,8 @@ func GetUser(db *sql.DB, username string) (User, error) {
 }
 
 // Add User
-func AddUser(db *sql.DB, ID string, Username string, Password []byte, Name string, Role string, Email string, Address string, Contact string, DateJoined string) error {
-	query := fmt.Sprintf("INSERT INTO Users VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')", ID, Username, Password, Name, Role, Email, Address, Contact, DateJoined)
+func AddUser(db *sql.DB, Username string, Password []byte, Name string, Role string, Email string, Address string, Contact string, DateJoined string) error {
+	query := fmt.Sprintf("INSERT INTO Users (Username, Password, Name, Role, Email, Address, Contact, Date_Joined) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')", Username, Password, Name, Role, Email, Address, Contact, DateJoined)
 	_, err := db.Exec(query)
 	if err != nil {
 		fmt.Println("Error", err)
@@ -113,8 +113,8 @@ func AddUser(db *sql.DB, ID string, Username string, Password []byte, Name strin
 	return err
 }
 
-func EditUser(db *sql.DB, ID string, Username string, Password []byte, Name string, Role string, Email string, Address string, Contact string, DateJoined string) error {
-	query := fmt.Sprintf("UPDATE Users SET ID='%s', Password='%s', Name='%s', Role='%s', Email='%s', Address='%s', Contact='%s', DateJoined='%s' WHERE Username='%s'", ID, Username, Password, Name, Role, Email, Address, Contact, DateJoined)
+func EditUser(db *sql.DB, Username string, Password []byte, Name string, Role string, Email string, Address string, Contact string, DateJoined string) error {
+	query := fmt.Sprintf("UPDATE Users SET Password='%s', Name='%s', Role='%s', Email='%s', Address='%s', Contact='%s', DateJoined='%s' WHERE Username='%s'", Username, Password, Name, Role, Email, Address, Contact, DateJoined)
 	_, err := db.Exec(query)
 	if err != nil {
 		fmt.Println("Error", err)
@@ -123,7 +123,6 @@ func EditUser(db *sql.DB, ID string, Username string, Password []byte, Name stri
 	return err
 }
 
-// only can delete where ID because of primary key
 func DeleteUser(db *sql.DB, Username string) error {
 	query := fmt.Sprintf("DELETE FROM Users WHERE Username='%s'", Username)
 	_, err := db.Exec(query)
@@ -144,24 +143,3 @@ func Login(db *sql.DB, Username string, Password string) (User, error) {
 	}
 	return user, nil
 }
-
-// func createAccounts() {
-// 	db := connectDB()
-
-// 	users := [2]User{
-// 		{Username: "Martin", Email: "martin@martin.com"},
-// 		{Username: "Michael", Email: "michael@michael.com"},
-// 	}
-
-// 	for i := 0; i < len(users); i++ {
-// 		// Correct one way
-// 		// generatedPassword := helpers.HashAndSalt([]byte(users[i].Username))
-// 		generatedPassword := helpers.HashOnlyVulnerable([]byte(users[i].Username))
-// 		user := User{Username: users[i].Username, Email: users[i].Email, Password: generatedPassword}
-// 		db.Create(&user)
-
-// 		account := Account{Type: "Daily Account", Name: string(users[i].Username + "'s" + " account"), Balance: uint(10000 * int(i+1)), UserID: user.ID}
-// 		db.Create(&account)
-// 	}
-// 	defer db.Close()
-// }

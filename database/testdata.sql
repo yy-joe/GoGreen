@@ -1,0 +1,32 @@
+INSERT INTO Brands (Name, Description) VALUES ('Brand A', 'This is brand A');
+INSERT INTO Brands (Name, Description) VALUES ('Brand B', 'This is brand B');
+INSERT INTO Brands (Name, Description) VALUES ('Brand C', 'This is brand C');
+INSERT INTO Brands (Name, Description) VALUES ('Brand D', 'This is brand D');
+INSERT INTO Brands (Name, Description) VALUES ('Brand E', 'This is brand E');
+INSERT INTO Brands (Name, Description) VALUES ('Brand F', 'This is brand F');
+INSERT INTO Brands (Name, Description) VALUES ('Brand G', 'This is brand G');
+INSERT INTO Brands (Name, Description) VALUES ('Brand H', 'This is brand H');
+INSERT INTO Brands (Name, Description) VALUES ('Brand I', 'This is brand I');
+INSERT INTO Brands (Name, Description) VALUES ('Brand J', 'This is brand J');
+
+INSERT INTO Categories (Name, Description) VALUES ('Category A', 'This is category A');
+INSERT INTO Categories (Name, Description) VALUES ('Category B', 'This is category B');
+INSERT INTO Categories (Name, Description) VALUES ('Category C', 'This is category C');
+INSERT INTO Categories (Name, Description) VALUES ('Category D', 'This is category D');
+INSERT INTO Categories (Name, Description) VALUES ('Category E', 'This is category E');
+INSERT INTO Categories (Name, Description) VALUES ('Category F', 'This is category F');
+INSERT INTO Categories (Name, Description) VALUES ('Category G', 'This is category G');
+INSERT INTO Categories (Name, Description) VALUES ('Category H', 'This is category H');
+INSERT INTO Categories (Name, Description) VALUES ('Category I', 'This is category I');
+INSERT INTO Categories (Name, Description) VALUES ('Category J', 'This is category J');
+
+INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, Quantity_Sold, `Condition`, Category_ID, Brand_ID, Status) VALUES ('Bag A', 'nil', 'Big bag', 'This is a rather big bag', curdate(), curdate(), 10, 20, 0, 'New', 1, 1, 'active');
+INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, Quantity_Sold, `Condition`, Category_ID, Brand_ID, Status) VALUES ('Bag B', 'nil', 'Big bag', 'This is a very big bag', curdate(), curdate(), 15, 30, 0, 'New', 2, 1, 'unlisted');
+INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, Quantity_Sold, `Condition`, Category_ID, Brand_ID, Status) VALUES ('Bag C', 'nil', 'Big bag', 'This is an extremely big bag', curdate(), curdate(), 10, 20, 0, 'New', 1, 3, 'active');
+INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, Quantity_Sold, `Condition`, Category_ID, Brand_ID, Status) VALUES ('Bag D', 'nil', 'Big bag', 'This is a humongous bag', curdate(), curdate(), 8, 120, 0, 'Used', 2, 2, 'active');
+INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, Quantity_Sold, `Condition`, Category_ID, Brand_ID, Status) VALUES ('Bag E', 'nil', 'Big bag', 'This is a small bag', curdate(), curdate(), 14, 0, 0, 'New', 3, 3, 'soldout');
+INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, Quantity_Sold, `Condition`, Category_ID, Brand_ID, Status) VALUES ('Bag F', 'nil', 'Big bag', 'This is a rather small bag', curdate(), curdate(), 30, 20, 0, 'New', 1, 2, 'active');
+INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, Quantity_Sold, `Condition`, Category_ID, Brand_ID, Status) VALUES ('Bag G', 'nil', 'Big bag', 'This is an extremely small bag', curdate(), curdate(), 5, 200, 0, 'New', 2, 3, 'active');
+INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, Quantity_Sold, `Condition`, Category_ID, Brand_ID, Status) VALUES ('Bag H', 'nil', 'Big bag', 'This is a tiny bag', curdate(), curdate(), 16, 80, 0, 'Used', 1, 1, 'unlisted');
+INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, Quantity_Sold, `Condition`, Category_ID, Brand_ID, Status) VALUES ('Bag I', 'nil', 'Big bag', 'This is a yellow bag', curdate(), curdate(), 32, 20, 0, 'New', 2, 1, 'active');
+INSERT INTO Products (Name, Image, Desc_Short, Desc_Long, Date_Created, Date_Modified, Price, Quantity, Quantity_Sold, `Condition`, Category_ID, Brand_ID, Status) VALUES ('Bag J', 'nil', 'Big bag', 'This is the tiniest bag in the world', curdate(), curdate(), 24, 15, 0, 'New', 1, 3, 'active');

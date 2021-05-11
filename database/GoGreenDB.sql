@@ -2,9 +2,9 @@
 create database GoGreen;
 use GoGreen;
 create table `Users` (
-	`ID` int not null auto_increment, 
+	  `ID` int not null auto_increment, 
     `Username` varchar(30) not null, 
-    `Password` varchar(20) not null, 
+    `Password` varchar(150) not null, 
     `Name` varchar(50) not null, 
     `Role` varchar(30) not null, 
     `Email` varchar(100) not null, 
@@ -72,4 +72,13 @@ CREATE TABLE `Product_Orders` (
   Primary Key (`ID`),
   Foreign Key(`Product_ID`) references Products(`ID`) on update cascade on delete cascade,
   Foreign Key(`Customer_Order_ID`) references Customer_Orders(`ID`) on update cascade on delete cascade
+);
+
+CREATE TABLE `Enquiries` (
+  `ID` int NOT NULL auto_increment,
+  `Name` varchar(200) not null,
+  `Email` varchar(100) not null,
+  `Enquiry_Date` date not null,
+  `Message` varchar(1000) not null,
+  Primary Key (`ID`)
 );

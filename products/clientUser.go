@@ -29,6 +29,8 @@ var (
 	productsByName     []Product
 
 	shopMap = make(map[string]shopCart)
+
+	results []Product
 )
 
 const sessionID string = "abcde"
@@ -55,8 +57,58 @@ func initGlobalVars() {
 
 // const baseURL = "http://localhost:5000/api/v1/admin/"
 
+func UserSearch(w http.ResponseWriter, r *http.Request) {
+	//initGlobalVars()
+
+	type templateData struct {
+		Products   []prodTpl
+		Categories []Category
+		Brands     []Brand
+	}
+
+	// fmt.Println("storedBrands=", storedBrands)
+	// fmt.Println("storedCategories=", storedCategories)
+	// fmt.Println("storedProducts=", storedProducts)
+
+	sortKey := r.FormValue("sortby")
+	fmt.Println("sortKey =", sortKey)
+
+	//search the global var storedProducts for active products
+	var activeProducts []Product
+	for _, v := range storedProducts {
+		if v.Status == "active" {
+			activeProducts = append(activeProducts, v)
+		}
+	}
+	fmt.Println("From UserSearch: activeProducts = ", activeProducts)
+
+	if r.Method == http.MethodPost {
+		searchKey := r.FormValue("SearchKey")
+		catID, _ := strconv.Atoi(r.FormValue("CatID"))
+		brandID, _ := strconv.Atoi(r.FormValue("BrandID"))
+		results = searchProduct(searchKey, catID, brandID, activeProducts)
+	}
+
+	switch sortKey {
+	case "":
+		tpl.ExecuteTemplate(w, "user_search.gohtml", templateData{formatProdTplData(results), storedCategories, storedBrands})
+	default:
+		sortedResults := sortProducts(results, sortKey)
+		fmt.Println(sortedResults)
+
+		tpl.ExecuteTemplate(w, "user_search.gohtml", templateData{formatProdTplData(sortedResults), storedCategories, storedBrands})
+	}
+
+}
+
 func Index(w http.ResponseWriter, r *http.Request) {
 	initGlobalVars()
+
+	type templateData struct {
+		Products   []prodTpl
+		Categories []Category
+		Brands     []Brand
+	}
 
 	fmt.Println("storedBrands=", storedBrands)
 	fmt.Println("storedCategories=", storedCategories)
@@ -74,36 +126,43 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(activeProducts)
 
-	//search the global var productsByPrice for active products
-	var activeProductsByPrice []Product
-	for _, v := range productsByPrice {
-		if v.Status == "active" {
-			activeProductsByPrice = append(activeProductsByPrice, v)
-		}
+	if r.Method == http.MethodPost {
+		searchKey := r.FormValue("SearchKey")
+		catID, _ := strconv.Atoi(r.FormValue("CatID"))
+		brandID, _ := strconv.Atoi(r.FormValue("BrandID"))
+		results := searchProduct(searchKey, catID, brandID, activeProducts)
+		tpl.ExecuteTemplate(w, "index_search.gohtml", templateData{formatProdTplData(results), storedCategories, storedBrands})
+		return
 	}
-
-	// //search the global var productsByQuantity for active products
-	// var activeProductsByQuantity []Product
-	// for _, v := range productsByQuantity {
-	// 	if v.Status == "active" {
-	// 		activeProductsByQuantity = append(activeProductsByQuantity, v)
-	// 	}
-	// }
 
 	switch sortKey {
 	case "":
-		tpl.ExecuteTemplate(w, "index.gohtml", activeProducts)
+		tpl.ExecuteTemplate(w, "index.gohtml", templateData{formatProdTplData(activeProducts), storedCategories, storedBrands})
 	case "Price":
-		tpl.ExecuteTemplate(w, "index.gohtml", activeProductsByPrice)
+		//search the global var productsByPrice for active products
+		var activeProductsByPrice []Product
+		for _, v := range productsByPrice {
+			if v.Status == "active" {
+				activeProductsByPrice = append(activeProductsByPrice, v)
+			}
+		}
+		tpl.ExecuteTemplate(w, "index.gohtml", templateData{formatProdTplData(activeProductsByPrice), storedCategories, storedBrands})
 
-	// case "Quantity":
-	// 	tpl.ExecuteTemplate(w, "index.gohtml", activeProductsByQuantity)
+	case "Quantity":
+		//search the global var productsByQuantity for active products
+		var activeProductsByQuantity []Product
+		for _, v := range productsByQuantity {
+			if v.Status == "active" {
+				activeProductsByQuantity = append(activeProductsByQuantity, v)
+			}
+		}
+		tpl.ExecuteTemplate(w, "index.gohtml", activeProductsByQuantity)
 
 	default:
 		sortedProducts := sortProducts(activeProducts, sortKey)
 		fmt.Println(sortedProducts)
 
-		tpl.ExecuteTemplate(w, "index.gohtml", sortedProducts)
+		tpl.ExecuteTemplate(w, "index.gohtml", templateData{formatProdTplData(sortedProducts), storedCategories, storedBrands})
 	}
 }
 
@@ -239,6 +298,57 @@ func Cart(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// type UserInfo struct {
+		// 	ID          string `json:"id"`
+		// 	Username    string `json:"username" validate:"required"`
+		// 	Password    []byte `json:"password" validate:"required"`
+		// 	Name        string `json:"name" validate:"required"`
+		// 	Role        string `json:"role" validate:"required"`
+		// 	Email       string `json:"email" validate:"required"`
+		// 	Address     string `json:"address"`
+		// 	Contact     int    `json:"contact"`
+		// 	Date_Joined string `json:"date_joined"`
+		// }
+
+		// var mapUsers map[string]data.User
+		// var mapUsers map[string]data.User
+
+		//get userID from session map
+		// 	myCookie, err := r.Cookie("myCookie")
+		// if err != nil {
+		// 	id, _ := uuid.NewV4()
+		// 	myCookie = &http.Cookie{
+		// 		Name:     "myCookie",
+		// 		Value:    id.String(),
+		// 		HttpOnly: true,
+		// 	}
+
+		// }
+		// http.SetCookie(w, myCookie)
+
+		// // if the user exists already, get user
+		// var user UserInfo
+		// if username, ok := mapSessions[myCookie.Value]; ok {
+		// 	user = jsonMap[username]
+		// }
+
+		// //Create customer order and product order entries
+
+		// jsonValue, err := json.Marshal(userCart)
+		// if err != nil {
+		// 	log.Fatalln(err)
+		// }
+
+		// url := baseURL + "enquiry"
+		// res, err := client.Post(url, "application/json", bytes.NewBuffer(jsonValue))
+		// if err != nil {
+		// 	log.Fatalln(err)
+		// }
+
+		// if res.StatusCode != 200 {
+		// 	return
+		// }
+
 		// execute order confirmation page
 		tpl.ExecuteTemplate(w, "orderConfirmation.gohtml", nil)
 		return
@@ -267,4 +377,45 @@ func Cart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tpl.ExecuteTemplate(w, "cart.gohtml", templateData)
+}
+
+func Enquiry(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		name := r.FormValue("Name")
+		email := r.FormValue("Email")
+		message := r.FormValue("Message")
+
+		enquiry := struct {
+			Name        string
+			Email       string
+			EnquiryDate string
+			Message     string
+		}{
+			Name:        name,
+			Email:       email,
+			EnquiryDate: "",
+			Message:     message,
+		}
+		jsonValue, err := json.Marshal(enquiry)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		url := baseURL + "enquiry"
+		res, err := client.Post(url, "application/json", bytes.NewBuffer(jsonValue))
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		if res.StatusCode != 200 {
+			return
+		}
+		// execute order confirmation page
+		tpl.ExecuteTemplate(w, "enquiryConfirmation.gohtml", nil)
+		return
+	}
+
+	// execute order confirmation page
+	tpl.ExecuteTemplate(w, "enquiry.gohtml", nil)
+	return
 }
