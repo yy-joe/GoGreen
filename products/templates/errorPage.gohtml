@@ -7,6 +7,9 @@
 </head>
 
 <body>
+
+{{template "userTopBanner"}}
+
     <p>Oops, an error occured!</p>
 
     <p>{{.ErrorMessage}}</p>
@@ -14,6 +17,9 @@
     <form method="post" action="{{.RedirectLink}}">
         <input type="submit" value="{{.ButtonValue}}">
     </form>
+
+{{template "userBottomBanner"}}
+
 </body>
 
 </html>
