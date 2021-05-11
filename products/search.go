@@ -16,7 +16,7 @@ import "strings"
 func searchProduct(searchKey string, catID int, brandID int, products []Product) (results []Product) {
 	// fmt.Println(strings.Contains("seafood restaurant", "foo"))
 	for _, v := range products {
-		if strings.Contains(v.Name, searchKey) {
+		if strings.Contains(strings.ToLower(v.Name), strings.ToLower(searchKey)) {
 			if catID <= 0 && brandID <= 0 {
 				results = append(results, v)
 			} else if catID <= 0 && brandID == v.BrandID {

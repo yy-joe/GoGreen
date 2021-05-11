@@ -3,68 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <title>GoGreen</title>
+
     {{template "FooterStyle"}}
 </head>
 <body>
 
-{{template "userTopBanner"}}
+    {{template "userTopBanner"}}
 
-<table width="80%">
-<tr><td colspan=7><h1>All Products</h1></td></tr>
+    <table width="80%">
+    <tr><td colspan=7><h1>All Products</h1></td></tr>
 
-<tr><td colspan=7>
-<form method="post" action="/search">
+    <tr><td colspan=7>
+    <form method="post" action="/search">
 
-    <label for="name">Search Product:</label>    
-    <input type="text" name="SearchKey" id="name">
-   
-    <label for="categories">Categories:</label>
-    <select name="CatID" id="categories" required>
-    <option value="0" selected>Any category</option>
+        <label for="name">Search Product:</label>    
+        <input type="text" name="SearchKey" id="name">
     
-    {{range $index, $element := .Categories}} 
-        <option value="{{$element.ID}}"> {{$element.Name}} </option>
+        <label for="categories">Categories:</label>
+        <select name="CatID" id="categories" required>
+        <option value="0" selected>Any category</option>
+        
+        {{range $index, $element := .Categories}} 
+            <option value="{{$element.ID}}"> {{$element.Name}} </option>
+        {{end}}
+        </select>
+
+        <label for="brands">Brand:</label>
+        <select name="BrandID" id="brands" required>
+        <option value="0" selected>Any brand</option>
+
+        {{range $index, $element := .Brands}} 
+            <option value="{{$element.ID}}"> {{$element.Name}} </option>
+        {{end}}
+        </select>
+
+        <input type="submit" name="Search" value="Search">
+
+    </form>
+    </td></tr>
+
+    <tr>
+        <td><h3><a href="/?sortby=Name">Product Name</a></h3></td>
+        <td><h3>Short Description</h3></td>
+        <td><h3><a href="/?sortby=Price">Price</a></h3></td>
+        <td><h3><a href="/?sortby=Quantity">Quantity</a></h3></td>
+        <td><h3>Category</h3></td>
+        <td><h3>Brand</h3></td>
+        <td><h3>Condition</h3></td>
+
+    </tr>
+    {{range .Products}} 
+    <tr>
+        <td><a href="/{{.ID}}">{{.Name}}</a></td>
+        <td>{{.DescShort}}</td>
+        <td>{{.Price}}</td>
+        <td>{{.Quantity}}</td>
+        <td>{{.CategoryName}}</td>
+        <td>{{.BrandName}}</td>
+        <td>{{.Condition}}</td>
+
+    </tr>
     {{end}}
-    </select>
 
-    <label for="brands">Brand:</label>
-    <select name="BrandID" id="brands" required>
-    <option value="0" selected>Any brand</option>
-
-    {{range $index, $element := .Brands}} 
-        <option value="{{$element.ID}}"> {{$element.Name}} </option>
-    {{end}}
-    </select>
-
-    <input type="submit" name="Search" value="Search">
-
-</form>
-</td></tr>
-
-<tr>
-    <td><h3><a href="/?sortby=Name">Product Name</a></h3></td>
-    <td><h3>Short Description</h3></td>
-    <td><h3><a href="/?sortby=Price">Price</a></h3></td>
-    <td><h3><a href="/?sortby=Quantity">Quantity</a></h3></td>
-    <td><h3>Category</h3></td>
-    <td><h3>Brand</h3></td>
-    <td><h3>Condition</h3></td>
-
-</tr>
-{{range .Products}} 
-<tr>
-    <td><a href="/{{.ID}}">{{.Name}}</a></td>
-    <td>{{.DescShort}}</td>
-    <td>{{.Price}}</td>
-    <td>{{.Quantity}}</td>
-    <td>{{.CategoryName}}</td>
-    <td>{{.BrandName}}</td>
-    <td>{{.Condition}}</td>
-
-</tr>
-{{end}}
-
-</table>
+    </table>
 </body>
 
 {{template "userBottomBanner"}}

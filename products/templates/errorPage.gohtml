@@ -4,11 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Error</title>
+    
+    {{template "FooterStyle"}}
 </head>
 
 <body>
 
-{{template "userTopBanner"}}
+    {{template "userTopBanner"}}
 
     <p>Oops, an error occured!</p>
 
@@ -18,8 +20,8 @@
         <input type="submit" value="{{.ButtonValue}}">
     </form>
 
-{{template "userBottomBanner"}}
-
 </body>
+
+{{template "userBottomBanner"}}
 
 </html>

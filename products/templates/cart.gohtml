@@ -3,54 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <title>GoGreen</title>
+
+    {{template "FooterStyle"}}
+
 </head>
 <body>
 
-{{template "userTopBanner"}}
+    {{template "userTopBanner"}}
 
-<h1>Shopping Cart</h1>
+    <h1>Shopping Cart</h1>
 
-<table>
-<tr>
-    <td><h3>Product Name</h3></td>
-    <td><h3>Quantity</h3></td>
-    <td><h3>Price</h3></td>
-    <td><h3>Total</h3></td>
+    <table>
+    <tr>
+        <td><h3>Product Name</h3></td>
+        <td><h3>Quantity</h3></td>
+        <td><h3>Price</h3></td>
+        <td><h3>Total</h3></td>
 
-</tr>
-{{range $index, $element := .CartData}} 
-<tr>
-    <td><a href="/{{.ID}}">{{.Name}}</a></td>
-    <td>{{.QuantityToBuy}}</td>
-    <td>${{.Price}}</td>
-    <td>${{.ItemTotal}}</td>
-    <td>
-        <form method="post">
-            <input type="hidden" name="cartIndex" value="{{$index}}">
-            <input type="submit" name="submit" value="Remove From Cart">
-        </form>
-    </td>
-</tr>
-{{end}}
+    </tr>
+    {{range $index, $element := .CartData}} 
+    <tr>
+        <td><a href="/{{.ID}}">{{.Name}}</a></td>
+        <td>{{.QuantityToBuy}}</td>
+        <td>${{.Price}}</td>
+        <td>${{.ItemTotal}}</td>
+        <td>
+            <form method="post">
+                <input type="hidden" name="cartIndex" value="{{$index}}">
+                <input type="submit" name="submit" value="Remove From Cart">
+            </form>
+        </td>
+    </tr>
+    {{end}}
 
-<tr>
-<td>Total for this order:</td>
-<td></td>
-<td></td>
-<td>${{.CartTotal}}</td>
-</tr>
-</table>
+    <tr>
+    <td>Total for this order:</td>
+    <td></td>
+    <td></td>
+    <td>${{.CartTotal}}</td>
+    </tr>
+    </table>
 
-<br>
+    <br>
 
-<form method="post">
-<input type="submit" name="submit" value="Checkout">
-</form>
-<form method="post" action="/">
-<input type="submit" name="submit" value="Back">
-</form>
+    <form method="post">
+    <input type="submit" name="submit" value="Checkout">
+    </form>
+    <form method="post" action="/">
+    <input type="submit" name="submit" value="Back">
+    </form>
+
+</body>
 
 {{template "userBottomBanner"}}
 
-</body>
 </html>

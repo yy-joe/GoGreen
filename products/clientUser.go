@@ -19,6 +19,12 @@ type CartItem struct {
 }
 type shopCart []CartItem
 
+type ErrorTplData struct {
+	ErrorMessage string
+	RedirectLink string
+	ButtonValue  string
+}
+
 var (
 	storedProducts   []Product
 	storedCategories []Category
@@ -26,7 +32,7 @@ var (
 
 	productsByPrice    []Product
 	productsByQuantity []Product
-	productsByName     []Product
+	// productsByName     []Product
 
 	shopMap = make(map[string]shopCart)
 
@@ -51,8 +57,8 @@ func initGlobalVars() {
 	productsByPrice = mergeSort(storedProducts, "Price")
 	productsByQuantity = mergeSort(storedProducts, "Quantity")
 
-	productsByName = make([]Product, 0, len(storedProducts))
-	productsByName = mergeSort(storedProducts, "Name")
+	// productsByName = make([]Product, 0, len(storedProducts))
+	// productsByName = mergeSort(storedProducts, "Name")
 }
 
 // const baseURL = "http://localhost:5000/api/v1/admin/"
@@ -417,7 +423,6 @@ func Enquiry(w http.ResponseWriter, r *http.Request) {
 
 	// execute order confirmation page
 	tpl.ExecuteTemplate(w, "enquiry.gohtml", nil)
-	return
 }
 
 // package products
@@ -657,12 +662,6 @@ func Enquiry(w http.ResponseWriter, r *http.Request) {
 
 // 	tpl.ExecuteTemplate(w, "details.gohtml", templateData)
 // }
-
-type ErrorTplData struct {
-	ErrorMessage string
-	RedirectLink string
-	ButtonValue  string
-}
 
 // func Cart(w http.ResponseWriter, r *http.Request) {
 // 	defer func() {
