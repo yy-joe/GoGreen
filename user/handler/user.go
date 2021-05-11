@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"GoGreen/restapi/data"
+	"GoGreen/user/data"
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
@@ -22,7 +22,7 @@ import (
 type UserInfo struct {
 	ID          string `json:"id"`
 	Username    string `json:"username" validate:"required"`
-	Password    []byte `json:"password" validate:"required"`
+	Password    string `json:"password" validate:"required"`
 	Name        string `json:"name" validate:"required"`
 	Role        string `json:"role" validate:"required"`
 	Email       string `json:"email" validate:"required"`
@@ -42,16 +42,16 @@ var convertFormat = currentTime.Format("2006-01-02")
 // store all users
 var users map[string]UserInfo
 
-var mapUsers map[string]data.User
+var MapUsers map[string]data.User
 
 var jsonMap map[string]UserInfo
 
 // store cookie session
-var mapSessions = map[string]string{}
+var MapSessions = map[string]string{}
 
 func TestData() {
 	users = make(map[string]UserInfo)
-	users["IOT201"] = UserInfo{ID: "0", Username: "nigga", Password: []byte("password"), Name: "nigga", Role: "admin", Email: "nigga@gmail.com", Contact: 978787, Date_Joined: convertFormat}
+	users["IOT201"] = UserInfo{ID: "0", Username: "nigga", Password: "password", Name: "nigga", Role: "admin", Email: "nigga@gmail.com", Contact: 978787, Date_Joined: convertFormat}
 
 	mapCourse, _ := json.Marshal(users)
 	fmt.Println("Test Data:", string(mapCourse))
@@ -73,23 +73,23 @@ func LoginAcc(w http.ResponseWriter, r *http.Request) {
 	var login Login
 
 	data.FromJSON(&login, r.Body)
-	fmt.Println("login function")
 	loginDB, loginErr := data.Login(db, login.Username, login.Password)
 	if loginErr != nil {
 		fmt.Println("Error retrieving login info from db")
-	}
-	x := string(loginDB.Password)
-	fmt.Println(x)
-
-	if login.Username != loginDB.Username {
-		fmt.Println("Username and/or password do not match")
 		return
 	}
 
-	errCompare := bcrypt.CompareHashAndPassword([]byte(loginDB.Password), []byte(login.Password))
+	if login.Username != loginDB.Username {
+		fmt.Println("Username do not match")
+		w.Write([]byte("401 - Username and/or password do not match."))
+		return
+	}
+
+	errCompare := bcrypt.CompareHashAndPassword(loginDB.Password, []byte(login.Password))
 
 	if errCompare != nil {
 		fmt.Println("Username and/or password do not match", errCompare)
+		w.Write([]byte("401 - Username and/or password do not match."))
 		return
 	}
 
@@ -102,8 +102,8 @@ func LoginAcc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, myCookie)
-	mapSessions[myCookie.Value] = login.Username
-	fmt.Println("sessions: ", mapSessions)
+	MapSessions[myCookie.Value] = login.Username
+	fmt.Println("sessions: ", MapSessions)
 
 	bUsername, _ := bcrypt.GenerateFromPassword([]byte(login.Username), bcrypt.MinCost)
 	bPassword, _ := bcrypt.GenerateFromPassword([]byte(login.Password), bcrypt.MinCost)
@@ -119,11 +119,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	if DBerr != nil {
 		fmt.Println("Error connect to DB")
 	}
-
-	_, apiErr := http.Get("https://localhost:3000/api/v1/admin/users")
-	if apiErr != nil {
-		fmt.Println("error reaching the get all users api", apiErr)
-	}
 	data.FromJSON(&user, r.Body)
 	_, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -132,12 +127,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	// sliceUsers, err := data.GetUsers(db)
 
 	// for _, v := range sliceUsers {
-
+	// 	if v.Username == user.Username {
+	// 		fmt.Println("Username already taken")
+	// 		http.Error(w, "Username already taken", http.StatusForbidden)
+	// 		return
+	// 	}
 	// }
-	fmt.Println("all users: ", mapUsers)
-	fmt.Println("username: ", user.Username)
-	if _, ok := mapUsers[user.Username]; ok {
+	if _, ok := MapUsers[user.Username]; ok {
 		fmt.Println("Username already taken")
+		w.Write([]byte("400 -Username already taken."))
 		http.Error(w, "Username already taken", http.StatusForbidden)
 		return
 	}
@@ -151,7 +149,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	}
 	http.SetCookie(w, myCookie)
-	mapSessions[myCookie.Value] = user.Username // cookie become the key
+	MapSessions[myCookie.Value] = user.Username // cookie become the key
 
 	bPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MinCost)
 	if err != nil {
@@ -164,24 +162,27 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	addErr := data.AddUser(db, user.Username, bPassword, user.Name, user.Role, user.Email, user.Address, convertString, user.Date_Joined)
 	if addErr != nil {
 		fmt.Println("Unable to register new user", addErr)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 -Error adding new user at database."))
+		return
 	}
-	fmt.Println("session: ", mapSessions)
+	fmt.Println("session: ", MapSessions)
 	data.ToJSON(&user, w)
 }
 
-func Logout(w http.ResponseWriter, r *http.Request) {
-	myCookie, _ := r.Cookie("myCookie")
-	// delete the session
-	delete(mapSessions, myCookie.Value)
-	// remove the cookie
-	myCookie = &http.Cookie{
-		Name:   "myCookie",
-		Value:  "",
-		MaxAge: -1,
-	}
-	fmt.Println("Successfully logout")
-	http.SetCookie(w, myCookie)
-}
+// func Logout(w http.ResponseWriter, r *http.Request) {
+// 	myCookie, _ := r.Cookie("myCookie")
+// 	// delete the session
+// 	delete(MapSessions, myCookie.Value)
+// 	// remove the cookie
+// 	myCookie = &http.Cookie{
+// 		Name:   "myCookie",
+// 		Value:  "",
+// 		MaxAge: -1,
+// 	}
+// 	fmt.Println("Successfully logout")
+// 	http.SetCookie(w, myCookie)
+// }
 
 // For admin only
 // list all users DONE
@@ -204,12 +205,10 @@ func ListAllUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// doing mapping
-	mapUsers = make(map[string]data.User)
+	MapUsers = make(map[string]data.User)
 	for _, v := range allUsers {
 		// testMap[string(v.Username)] = UserInfo{v.ID, []byte(v.Username), []byte(v.Password), v.Name, v.Role, v.Email, v.Address, v.Contact, v.Date_Joined}
-		// var testMap map[string]data.User
-		mapUsers[string(v.Username)] = v
-		// testMap[string(v.Username)] = data.User{v.ID}
+		MapUsers[string(v.Username)] = v
 	}
 
 	// jsonMap = make(map[string]UserInfo)
@@ -234,12 +233,16 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 
 	}
 	http.SetCookie(w, myCookie)
-
+	fmt.Println("cookie", myCookie)
+	fmt.Println(MapSessions[myCookie.Value])
+	fmt.Println(myCookie.Value)
 	// if the user exists already, get user
-	var user UserInfo
-	if username, ok := mapSessions[myCookie.Value]; ok {
-		user = jsonMap[username]
+	var user data.User
+	if username, ok := MapSessions[myCookie.Value]; ok {
+		fmt.Println("cookie found")
+		user = MapUsers[username]
 	}
+	fmt.Println("user,", user)
 	data.ToJSON(user, w)
 }
 
@@ -247,11 +250,6 @@ func ListUser(w http.ResponseWriter, r *http.Request) {
 // Check if username exist or not then add
 func AddUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("content-type", "application/json")
-
-	_, apiErr := http.Get("https://localhost:3000/api/v1/admin/users")
-	if apiErr != nil {
-		fmt.Println("error reaching the get all users api", apiErr)
-	}
 
 	db, dbErr := data.ConnectDB()
 	if dbErr != nil {
@@ -265,7 +263,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("error")
 	}
 
-	if _, ok := mapUsers[user.Username]; ok {
+	if _, ok := MapUsers[user.Username]; ok {
 		fmt.Println("Username already taken")
 		http.Error(w, "Username already taken", http.StatusForbidden)
 		return
@@ -283,6 +281,7 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	addErr := data.AddUser(db, user.Username, bPassword, user.Name, user.Role, user.Email, user.Address, convertString, user.Date_Joined)
 	if addErr != nil {
 		fmt.Println("Unable to register new user", addErr)
+		http.Error(w, "Username already taken", http.StatusForbidden)
 	}
 	data.ToJSON(&user, w)
 }
@@ -381,7 +380,7 @@ func EditAdminUser(w http.ResponseWriter, r *http.Request) {
 func TestAPI(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("content-type", "application/json")
 	users = make(map[string]UserInfo)
-	users["test"] = UserInfo{ID: "1", Username: "nigga", Password: []byte("password"), Name: "nigga", Role: "admin", Email: "nigga@gmail.com", Contact: 978787, Date_Joined: convertFormat}
+	users["test"] = UserInfo{ID: "1", Username: "nigga", Password: "password", Name: "nigga", Role: "admin", Email: "nigga@gmail.com", Contact: 978787, Date_Joined: convertFormat}
 }
 
 func basicAuth(h http.HandlerFunc, Username string, Password string) http.HandlerFunc {

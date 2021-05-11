@@ -107,8 +107,8 @@ func AddUser(db *sql.DB, Username string, Password []byte, Name string, Role str
 	query := fmt.Sprintf("INSERT INTO Users (Username, Password, Name, Role, Email, Address, Contact, Date_Joined) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')", Username, Password, Name, Role, Email, Address, Contact, DateJoined)
 	_, err := db.Exec(query)
 	if err != nil {
-		fmt.Println("Error", err)
-		panic(err.Error())
+		Trace.Println(err)
+		fmt.Println("Error adding new user in mysql", err)
 	}
 	return err
 }
@@ -138,8 +138,9 @@ func Login(db *sql.DB, Username string, Password string) (User, error) {
 	var user User
 	err := db.QueryRow("SELECT * FROM Users WHERE Username=?", Username).Scan(&user.ID, &user.Username, &user.Password, &user.Name, &user.Role, &user.Email, &user.Address, &user.Contact, &user.Date_Joined)
 	if err != nil {
-		fmt.Println("Error", err)
-		panic(err.Error())
+		fmt.Println("Cannot find username", err)
+		// log.Fatalln(err)
+		// panic(err.Error())
 	}
 	return user, nil
 }

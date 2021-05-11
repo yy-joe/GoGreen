@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Management PAGE</title>
+</head>
+<body>
+<h1>User Management</h1>
+<h2>List of Users</h2>
+{{range .}}
+<ul>
+    <li>{{.}}</li>
+<!-- <li>Username: {{.Username}} Name: {{.Name}} Role: {{.Role}} Date Joined: {{.Date_Joined}}</li> -->
+</ul>
+{{end}}
+
+<h2><a href="/addUser">Add User</a></h2>
+<h2><a href="/deleteUser">Delete user</a></h2>
+<h2><a href="/logout">Log Out</a></h2>
+
+<h2><a href="/">Home</a></h2>
+
+
+</body>
+</html>
