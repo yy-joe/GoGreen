@@ -47,7 +47,8 @@ func GetActiveProducts(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		w.Write([]byte("503 - Error opening the product database."))
-		Trace.Fatalln("Failed to open the product database.")
+		Trace.Println("Failed to open the product database.")
+		return
 	}
 	defer db.Close()
 	fmt.Println("The database is opened:", db)
@@ -140,7 +141,7 @@ func ServerEnquiry(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			Trace.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("500 -Error updating product at database."))
+			w.Write([]byte("500 -Error updating enquiry at database."))
 			return
 		}
 
@@ -192,10 +193,8 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte("404 - No product found."))
 		} else {
-			//w.WriteHeader(http.StatusOK)
-			//w.Write([]byte("200 - Found requested product."))
 			json.NewEncoder(w).Encode(product)
-			fmt.Println(product)
+			// fmt.Println(product)
 		}
 	} else if r.Method == "DELETE" {
 		productID, _ := strconv.Atoi(params["productid"])
@@ -206,10 +205,6 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("500 -Error deleting product from database."))
 			return
 		}
-		// w.WriteHeader(http.StatusAccepted)
-		// w.Write([]byte("202 - product deleted: " + params["productid"]))
-
-		// } else if r.Header.Get("Content-type") == "application/json" {
 
 		//POST is for creating new product
 	} else if r.Method == "POST" {
@@ -225,8 +220,6 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 			//convert JSON to object
 			json.Unmarshal(reqBody, &newProduct)
 
-			// var curTime = time.Now()
-			// var curDate = curTime.Format("2006-01-02")
 			newProduct.DateCreated = curDate
 			newProduct.DateModified = curDate
 
@@ -238,8 +231,6 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte("500 -Error updating product at database."))
 				return
 			}
-			// w.WriteHeader(http.StatusCreated)
-			// w.Write([]byte("201 - product added: " + params["productid"]))
 			json.NewEncoder(w).Encode(newProduct)
 			fmt.Println("Product successfully added.")
 		}
@@ -268,9 +259,6 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("500 -Error updating product at database."))
 			return
 		}
-		// w.WriteHeader(http.StatusAccepted)
-		// w.Write([]byte("202 - product updated: " + params["productid"]))
-
 		json.NewEncoder(w).Encode(updatedProduct)
 	}
 }
@@ -293,7 +281,7 @@ func AllBrands(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(brands)
-	fmt.Println(brands)
+	// fmt.Println(brands)
 }
 
 func ServerGetBrand(w http.ResponseWriter, r *http.Request) {
@@ -319,7 +307,7 @@ func ServerGetBrand(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(brand)
 
-	fmt.Println(brand)
+	// fmt.Println(brand)
 }
 
 func ServerAddBrand(w http.ResponseWriter, r *http.Request) {
@@ -441,7 +429,7 @@ func AllCategories(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(categories)
-	fmt.Println(categories)
+	// fmt.Println(categories)
 }
 
 func ServerGetCategory(w http.ResponseWriter, r *http.Request) {
@@ -467,7 +455,7 @@ func ServerGetCategory(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(category)
 
-	fmt.Println(category)
+	// fmt.Println(category)
 }
 
 func ServerAddCategory(w http.ResponseWriter, r *http.Request) {

@@ -93,7 +93,6 @@ func main() {
 	//UI URLS for Products/Shop (User)
 	router.HandleFunc("/", products.Index)
 	router.HandleFunc("/search", products.UserSearch)
-	router.HandleFunc("/{productid}", products.Details) //later rename
 	// router.HandleFunc("/by-category/{categoryid}",)
 	// router.HandleFunc("/by-brand/{brandid}",)
 	router.HandleFunc("/user/cart", products.Cart)
@@ -113,6 +112,8 @@ func main() {
 	router.HandleFunc("/brand/{brandid}", products.BrandDetail)
 	router.HandleFunc("/brand/update/{brandid}", products.BrandUpdate)
 	router.HandleFunc("/brand/delete/{brandid}", products.BrandDelete)
+
+	router.HandleFunc("/{productid}", products.Details) //later rename
 
 	// server config
 	serverConfig := http.Server{

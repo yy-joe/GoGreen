@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -29,6 +28,31 @@ var mutex sync.Mutex
 const baseURL = "https://localhost:3000/api/v1/admin/"
 
 func ProdMain(w http.ResponseWriter, r *http.Request) {
+	// if len(storedProducts) == 0 {
+	// 	err := initGlobalVars()
+	// 	if err != nil {
+	// 		errData := ErrorTplData{
+	// 			ErrorMessage: "Error getting data from the server.",
+	// 			RedirectLink: "/products/all",
+	// 			ButtonValue:  "Try again",
+	// 		}
+	// 		tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+	// 		return
+	// 	}
+	// }
+
+	defer func() {
+		if err := recover(); err != nil {
+			//reload the shopping cart template
+			errData := ErrorTplData{
+				ErrorMessage: "The product list cannot be loaded at the moment.",
+				RedirectLink: "/products/all",
+				ButtonValue:  "Try again",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
+
 	sortKey := r.FormValue("sortby")
 	fmt.Println("sortKey =", sortKey)
 
@@ -38,22 +62,20 @@ func ProdMain(w http.ResponseWriter, r *http.Request) {
 	res, err := client.Get(url)
 	if err != nil {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
+		panic(err)
 	}
 	defer res.Body.Close()
-	data, _ := ioutil.ReadAll(res.Body)
-	// fmt.Fprintln(w, res.StatusCode)
-	// fmt.Fprintln(w, string(data))
-	//fmt.Println(string(data))
-
-	// var products []Product
-	// err = json.Unmarshal(data, &products)
-	// tpl.ExecuteTemplate(w, "prodMain.gohtml", products)
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("Error reading response body: %s\n", err)
+		panic(err)
+	}
 
 	var products []Product
 	err = json.Unmarshal(data, &products)
-
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Printf("Error reading JSON data: %s\n", err)
+		panic(err)
 	}
 
 	switch sortKey {
@@ -115,6 +137,7 @@ func formatProdTplData(products []Product) (productsTpl []prodTpl) {
 		prod.DateModified = v.DateModified
 		prod.Price = v.Price
 		prod.Quantity = v.Quantity
+		prod.QuantitySold = v.QuantitySold
 		prod.Condition = v.Condition
 		prod.CategoryName = storedCatMap[v.CategoryID]
 		prod.BrandName = storedBrandMap[v.BrandID]
@@ -137,21 +160,39 @@ func ProdByStatus(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	byStatus := params["byStatus"]
 
+	defer func() {
+		if err := recover(); err != nil {
+			//reload the shopping cart template
+			errData := ErrorTplData{
+				ErrorMessage: "The product list cannot be loaded at the moment.",
+				RedirectLink: "/products/" + byStatus,
+				ButtonValue:  "Try again",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
+
 	url := baseURL + "products/" + byStatus
 	fmt.Println(url)
 	// res, err := http.Get(url)
 	res, err := client.Get(url)
 	if err != nil {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
+		panic(err)
 	}
 	defer res.Body.Close()
-	data, _ := ioutil.ReadAll(res.Body)
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("Error reading response body: %s\n", err)
+		panic(err)
+	}
 
 	var products []Product
 	err = json.Unmarshal(data, &products)
 
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Printf("Error reading JSON data: %s\n", err)
+		panic(err)
 	}
 
 	// productsByPrice = make([]Product, 0, len(products))
@@ -189,7 +230,17 @@ func ProdByStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func ProdAdd(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("inside prodAdd..........")
+	defer func() {
+		if err := recover(); err != nil {
+			//reload the shopping cart template
+			errData := ErrorTplData{
+				ErrorMessage: "Failed to add new product.",
+				RedirectLink: "/products/all",
+				ButtonValue:  "Back to main product page",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
 
 	if r.Method == http.MethodPost {
 		fmt.Println("prodAdd: processing submitted form...")
@@ -216,6 +267,10 @@ func ProdAdd(w http.ResponseWriter, r *http.Request) {
 
 		// json.NewEncoder(w).Encode(newProduct)
 		jsonValue, err := json.Marshal(newProduct)
+		if err != nil {
+			fmt.Printf("Error marshaling json data: %s\n", err)
+			panic(err)
+		}
 
 		url := baseURL + "product"
 		fmt.Println(url)
@@ -223,37 +278,53 @@ func ProdAdd(w http.ResponseWriter, r *http.Request) {
 		res, err := client.Post(url, "application/json", bytes.NewBuffer(jsonValue))
 		if err != nil {
 			fmt.Printf("The HTTP request failed with error %s\n", err)
+			panic(err)
 		}
 
 		//update global var storedProducts
 		reqBody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			fmt.Printf("Error reading response body: %s\n", err)
+			panic(err)
+		}
 		json.Unmarshal(reqBody, &newProduct)
 		mutex.Lock()
 		{
 			storedProducts = append(storedProducts, newProduct)
 		}
 		mutex.Unlock()
-		fmt.Println("Updated storedProducts :", storedProducts)
+		// fmt.Println("Updated storedProducts :", storedProducts)
 
 		//direct user back to the main products page
 		http.Redirect(w, r, "/products/all", http.StatusSeeOther)
 		return
 	}
 
-	fmt.Println("prodAdd: new page load, skip form submission. Getting list of categories and brands.")
 	//get the categories & brands
 	catsAndBrands := struct {
 		Categories []Category
 		Brands     []Brand
 	}{
-		Categories: clientGetCategories(),
-		Brands:     clientGetBrands(),
+		Categories: storedCategories,
+		Brands:     storedBrands,
 	}
-	fmt.Println(catsAndBrands)
+	// fmt.Println(catsAndBrands)
 	tpl.ExecuteTemplate(w, "prodAdd.gohtml", catsAndBrands)
 }
 
 func ProdUpdate(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			//reload the shopping cart template
+			errData := ErrorTplData{
+				ErrorMessage: "Failed to update product.",
+				RedirectLink: "/products/all",
+				ButtonValue:  "Back to main product page",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
+
 	params := mux.Vars(r)
 	productID := params["productid"]
 
@@ -284,12 +355,17 @@ func ProdUpdate(w http.ResponseWriter, r *http.Request) {
 
 		// json.NewEncoder(w).Encode(newProduct)
 		jsonValue, err := json.Marshal(updatedProduct)
+		if err != nil {
+			fmt.Printf("Error marshaling JSON: %s\n", err)
+			panic(err)
+		}
 
 		url := baseURL + "product/" + productID
 
 		req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(jsonValue))
 		if err != nil {
 			fmt.Printf("The HTTP request failed with error %s\n", err)
+			panic(err)
 		}
 
 		req.Header.Set("Content-Type", "application/json")
@@ -297,7 +373,8 @@ func ProdUpdate(w http.ResponseWriter, r *http.Request) {
 		res, err := client.Do(req)
 
 		if err != nil {
-			log.Fatalln(err)
+			fmt.Printf("The HTTP request failed with error %s\n", err)
+			panic(err)
 		}
 
 		if res.StatusCode != 200 {
@@ -305,6 +382,10 @@ func ProdUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 
 		reqBody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			fmt.Printf("Error reading response body: %s\n", err)
+			panic(err)
+		}
 		json.Unmarshal(reqBody, &updatedProduct)
 
 		for i, v := range storedProducts {
@@ -328,7 +409,7 @@ func ProdUpdate(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		fmt.Println("!!!! Updated storedProducts :", storedProducts)
+		// fmt.Println("!!!! Updated storedProducts :", storedProducts)
 
 		//direct user back to the main products page
 		byStatus := r.FormValue("byStatus")
@@ -342,6 +423,18 @@ func ProdUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func ProdDetail(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			//reload the shopping cart template
+			errData := ErrorTplData{
+				ErrorMessage: "Failed to get product detail.",
+				RedirectLink: "/products/all",
+				ButtonValue:  "Back to main product page",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
+
 	params := mux.Vars(r)
 	id := params["productid"]
 
@@ -351,22 +444,21 @@ func ProdDetail(w http.ResponseWriter, r *http.Request) {
 	res, err := client.Get(url)
 	if err != nil {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
+		panic(err)
 	}
 	defer res.Body.Close()
-	data, _ := ioutil.ReadAll(res.Body)
-	// fmt.Fprintln(w, res.StatusCode)
-	// fmt.Fprintln(w, string(data))
-	//fmt.Println(string(data))
-
-	// var products []Product
-	// err = json.Unmarshal(data, &products)
-	// tpl.ExecuteTemplate(w, "prodMain.gohtml", products)
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("Error reading response body %s\n", err)
+		panic(err)
+	}
 
 	var product Product
 	err = json.Unmarshal(data, &product)
 
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Printf("Error reading response body %s\n", err)
+		panic(err)
 	}
 
 	templateData := struct {
@@ -374,8 +466,8 @@ func ProdDetail(w http.ResponseWriter, r *http.Request) {
 		Brands     []Brand
 		Product    Product
 	}{
-		Categories: clientGetCategories(),
-		Brands:     clientGetBrands(),
+		Categories: storedCategories,
+		Brands:     storedBrands,
 		Product:    product,
 	}
 
@@ -383,6 +475,17 @@ func ProdDetail(w http.ResponseWriter, r *http.Request) {
 }
 
 func ProdDelete(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			//reload the shopping cart template
+			errData := ErrorTplData{
+				ErrorMessage: "Failed deleting product.",
+				RedirectLink: "/products/all",
+				ButtonValue:  "Back to main product page",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
 	params := mux.Vars(r)
 	productID := params["productid"]
 	prodIntID, _ := strconv.Atoi(productID)
@@ -392,12 +495,13 @@ func ProdDelete(w http.ResponseWriter, r *http.Request) {
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
+		panic(err)
 	}
 
 	res, err := client.Do(req)
-
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+		panic(err)
 	}
 
 	if res.StatusCode != 200 {
@@ -421,32 +525,55 @@ func ProdDelete(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/products/all", http.StatusSeeOther)
 }
 
-func clientGetCategories() (categories []Category) {
-
+func clientGetCategories() (categories []Category, err error) {
 	url := baseURL + "categories"
 	fmt.Println(url)
 	// res, err := http.Get(url)
 	res, err := client.Get(url)
 	if err != nil {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
+		return
 	}
 	defer res.Body.Close()
-	data, _ := ioutil.ReadAll(res.Body)
-	// fmt.Fprintln(w, res.StatusCode)
-	// fmt.Fprintln(w, string(data))
-	fmt.Println(string(data))
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("Error reading response body %s\n", err)
+		return
+	}
 
 	err = json.Unmarshal(data, &categories)
+	if err != nil {
+		fmt.Printf("Error reading JSON data: %s\n", err)
+		return
+	}
 	return
 }
 
 func CatMain(w http.ResponseWriter, r *http.Request) {
-	categories := clientGetCategories()
-
+	categories, err := clientGetCategories()
+	if err != nil {
+		errData := ErrorTplData{
+			ErrorMessage: "Error getting category data from the server.",
+			RedirectLink: "/categories/all",
+			ButtonValue:  "Try again",
+		}
+		tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		return
+	}
 	tpl.ExecuteTemplate(w, "catMain.gohtml", categories)
 }
 
 func CatDetail(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			errData := ErrorTplData{
+				ErrorMessage: "Failed getting category detail.",
+				RedirectLink: "/categories/all",
+				ButtonValue:  "Back to categories",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
 	params := mux.Vars(r)
 	catID := params["categoryid"]
 
@@ -455,22 +582,37 @@ func CatDetail(w http.ResponseWriter, r *http.Request) {
 	res, err := client.Get(url)
 	if err != nil {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
+		panic(err)
 	}
 	defer res.Body.Close()
-	data, _ := ioutil.ReadAll(res.Body)
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("Error reading response body: %s\n", err)
+		panic(err)
+	}
 
 	var category Category
 	err = json.Unmarshal(data, &category)
 
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Printf("Error reading JSON data: %s\n", err)
+		panic(err)
 	}
 
 	tpl.ExecuteTemplate(w, "catDetail.gohtml", category)
 }
 
 func CatAdd(w http.ResponseWriter, r *http.Request) {
-
+	defer func() {
+		if err := recover(); err != nil {
+			errData := ErrorTplData{
+				ErrorMessage: "Failed adding new category.",
+				RedirectLink: "/categories/all",
+				ButtonValue:  "Back to categories",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
 	if r.Method == http.MethodPost {
 
 		newCategory := Category{
@@ -480,6 +622,10 @@ func CatAdd(w http.ResponseWriter, r *http.Request) {
 		}
 
 		jsonValue, err := json.Marshal(newCategory)
+		if err != nil {
+			fmt.Printf("Error marshaling JSON data: %s\n", err)
+			panic(err)
+		}
 
 		url := baseURL + "category"
 
@@ -487,17 +633,22 @@ func CatAdd(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			fmt.Printf("The HTTP request failed with error %s\n", err)
+			panic(err)
 		}
 
 		//update the global variable storedCategories
 		reqBody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			fmt.Printf("Error reading response body: %s\n", err)
+			panic(err)
+		}
 		json.Unmarshal(reqBody, &newCategory)
 		mutex.Lock()
 		{
 			storedCategories = append(storedCategories, newCategory)
 		}
 		mutex.Unlock()
-		fmt.Println("Updated storedCategories :", storedCategories)
+		// fmt.Println("Updated storedCategories :", storedCategories)
 
 		http.Redirect(w, r, "/categories/all", http.StatusSeeOther)
 	}
@@ -506,6 +657,17 @@ func CatAdd(w http.ResponseWriter, r *http.Request) {
 }
 
 func CatUpdate(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			errData := ErrorTplData{
+				ErrorMessage: "Failed updating category.",
+				RedirectLink: "/categories/all",
+				ButtonValue:  "Back to categories",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
+
 	params := mux.Vars(r)
 	catID := params["categoryid"]
 
@@ -519,20 +681,24 @@ func CatUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 
 		jsonValue, err := json.Marshal(updatedCategory)
+		if err != nil {
+			fmt.Printf("Error marshaling JSON data: %s\n", err)
+			panic(err)
+		}
 
 		url := baseURL + "category/" + catID
-
 		req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(jsonValue))
 		if err != nil {
 			fmt.Printf("The HTTP request failed with error %s\n", err)
+			panic(err)
 		}
 
 		req.Header.Set("Content-Type", "application/json")
 
 		res, err := client.Do(req)
-
 		if err != nil {
-			log.Fatalln(err)
+			fmt.Printf("The HTTP request failed with error %s\n", err)
+			panic(err)
 		}
 
 		if res.StatusCode != 200 {
@@ -540,6 +706,11 @@ func CatUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 
 		reqBody, err := ioutil.ReadAll(res.Body)
+
+		if err != nil {
+			fmt.Printf("Error reading response body: %s\n", err)
+			panic(err)
+		}
 		json.Unmarshal(reqBody, &updatedCategory)
 
 		for i, v := range storedCategories {
@@ -554,7 +725,7 @@ func CatUpdate(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		fmt.Println("!!!! Updated storedCategories :", storedCategories)
+		// fmt.Println("!!!! Updated storedCategories :", storedCategories)
 
 		//direct user back to the main products page
 		http.Redirect(w, r, "/categories/all", http.StatusSeeOther)
@@ -562,6 +733,17 @@ func CatUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func CatDelete(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			errData := ErrorTplData{
+				ErrorMessage: "Failed deleting category.",
+				RedirectLink: "/categories/all",
+				ButtonValue:  "Back to categories",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
+
 	params := mux.Vars(r)
 	catID := params["categoryid"]
 	catIntID, _ := strconv.Atoi(catID)
@@ -571,12 +753,13 @@ func CatDelete(w http.ResponseWriter, r *http.Request) {
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
+		panic(err)
 	}
 
 	res, err := client.Do(req)
-
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+		panic(err)
 	}
 
 	if res.StatusCode != 200 {
@@ -594,57 +777,73 @@ func CatDelete(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	fmt.Println("Deleted a category : ", storedCategories)
+	// fmt.Println("Deleted a category : ", storedCategories)
 
 	//direct user back to the main products page
 	http.Redirect(w, r, "/categories/all", http.StatusSeeOther)
 }
 
-func clientGetProducts() (products []Product) {
+func clientGetProducts() (products []Product, err error) {
 
 	url := baseURL + "products"
 	fmt.Println(url)
 	res, err := client.Get(url)
 	if err != nil {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
+		return
 	}
 	defer res.Body.Close()
-	data, _ := ioutil.ReadAll(res.Body)
-	// fmt.Fprintln(w, res.StatusCode)
-	// fmt.Fprintln(w, string(data))
-	fmt.Println("From clientGetProducts:", string(data))
-	fmt.Println("---- end of data ----")
-
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("Error reading response body: %s\n", err)
+		return
+	}
 	err = json.Unmarshal(data, &products)
+	if err != nil {
+		fmt.Printf("Error reading JSON data: %s\n", err)
+		return
+	}
 	return
 }
 
-func clientGetBrands() (brands []Brand) {
+func clientGetBrands() (brands []Brand, err error) {
 
 	url := baseURL + "brands"
 	fmt.Println(url)
 	res, err := client.Get(url)
 	if err != nil {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
+		return
 	}
 	defer res.Body.Close()
-	data, _ := ioutil.ReadAll(res.Body)
-	// fmt.Fprintln(w, res.StatusCode)
-	// fmt.Fprintln(w, string(data))
-	fmt.Println("From clientGetBrands:", string(data))
-	fmt.Println("---- end of data ----")
-
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("Error reading response body: %s\n", err)
+		return
+	}
 	err = json.Unmarshal(data, &brands)
+	if err != nil {
+		fmt.Printf("Error reading JSON data: %s\n", err)
+		return
+	}
 	return
 }
 
 func BrandMain(w http.ResponseWriter, r *http.Request) {
-	brands := clientGetBrands()
-
-	tpl.ExecuteTemplate(w, "brandMain.gohtml", brands)
+	tpl.ExecuteTemplate(w, "brandMain.gohtml", storedBrands)
 }
 
 func BrandDetail(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			errData := ErrorTplData{
+				ErrorMessage: "Failed getting brand details.",
+				RedirectLink: "/brands/all",
+				ButtonValue:  "Back to brands",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
 	params := mux.Vars(r)
 	brandID := params["brandid"]
 
@@ -653,21 +852,36 @@ func BrandDetail(w http.ResponseWriter, r *http.Request) {
 	res, err := client.Get(url)
 	if err != nil {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
+		panic(err)
 	}
 	defer res.Body.Close()
-	data, _ := ioutil.ReadAll(res.Body)
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("Error reading response body: %s\n", err)
+		panic(err)
+	}
 
 	var brand Brand
 	err = json.Unmarshal(data, &brand)
-
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Printf("Error reading JSON data: %s\n", err)
+		panic(err)
 	}
 
 	tpl.ExecuteTemplate(w, "brandDetail.gohtml", brand)
 }
 
 func BrandAdd(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			errData := ErrorTplData{
+				ErrorMessage: "Failed adding brand.",
+				RedirectLink: "/brands/all",
+				ButtonValue:  "Back to brands",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
 
 	if r.Method == http.MethodPost {
 
@@ -678,6 +892,10 @@ func BrandAdd(w http.ResponseWriter, r *http.Request) {
 		}
 
 		jsonValue, err := json.Marshal(newBrand)
+		if err != nil {
+			fmt.Printf("Error marshaling JSON data: %s\n", err)
+			panic(err)
+		}
 
 		url := baseURL + "brand"
 
@@ -685,17 +903,22 @@ func BrandAdd(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			fmt.Printf("The HTTP request failed with error %s\n", err)
+			panic(err)
 		}
 
 		//update the global variable storedBrands
 		reqBody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			fmt.Printf("Error reading response body: %s\n", err)
+			panic(err)
+		}
 		json.Unmarshal(reqBody, &newBrand)
 		mutex.Lock()
 		{
 			storedBrands = append(storedBrands, newBrand)
 		}
 		mutex.Unlock()
-		fmt.Println("Updated storedBrands :", storedBrands)
+		// fmt.Println("Updated storedBrands :", storedBrands)
 
 		http.Redirect(w, r, "/brands/all", http.StatusSeeOther)
 	}
@@ -704,6 +927,17 @@ func BrandAdd(w http.ResponseWriter, r *http.Request) {
 }
 
 func BrandUpdate(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			errData := ErrorTplData{
+				ErrorMessage: "Failed updating brand.",
+				RedirectLink: "/brands/all",
+				ButtonValue:  "Back to brands",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
+
 	params := mux.Vars(r)
 	brandID := params["brandid"]
 
@@ -717,12 +951,17 @@ func BrandUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 
 		jsonValue, err := json.Marshal(updatedBrand)
+		if err != nil {
+			fmt.Printf("Error marshaling JSON data: %s\n", err)
+			panic(err)
+		}
 
 		url := baseURL + "brand/" + brandID
 
 		req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(jsonValue))
 		if err != nil {
 			fmt.Printf("The HTTP request failed with error %s\n", err)
+			panic(err)
 		}
 
 		req.Header.Set("Content-Type", "application/json")
@@ -730,7 +969,8 @@ func BrandUpdate(w http.ResponseWriter, r *http.Request) {
 		res, err := client.Do(req)
 
 		if err != nil {
-			log.Fatalln(err)
+			fmt.Printf("The HTTP request failed with error %s\n", err)
+			panic(err)
 		}
 
 		if res.StatusCode != 200 {
@@ -738,6 +978,11 @@ func BrandUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 
 		reqBody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			fmt.Printf("Error reading response body: %s\n", err)
+			panic(err)
+		}
+
 		json.Unmarshal(reqBody, &updatedBrand)
 
 		for i, v := range storedBrands {
@@ -752,7 +997,7 @@ func BrandUpdate(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		fmt.Println("!!!! Updated storedBrands :", storedBrands)
+		// fmt.Println("!!!! Updated storedBrands :", storedBrands)
 
 		//direct user back to the main products page
 		http.Redirect(w, r, "/brands/all", http.StatusSeeOther)
@@ -760,6 +1005,17 @@ func BrandUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func BrandDelete(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			errData := ErrorTplData{
+				ErrorMessage: "Failed deleting brand.",
+				RedirectLink: "/brands/all",
+				ButtonValue:  "Back to brands",
+			}
+			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
+		}
+	}()
+
 	params := mux.Vars(r)
 	brandID := params["brandid"]
 	brandIntID, _ := strconv.Atoi(brandID)
@@ -769,12 +1025,13 @@ func BrandDelete(w http.ResponseWriter, r *http.Request) {
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		fmt.Printf("The HTTP request failed with error %s\n", err)
+		panic(err)
 	}
 
 	res, err := client.Do(req)
-
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+		panic(err)
 	}
 
 	if res.StatusCode != 200 {
@@ -792,7 +1049,7 @@ func BrandDelete(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	fmt.Println("Deleted a brand : ", storedBrands)
+	// fmt.Println("Deleted a brand : ", storedBrands)
 
 	//direct user back to the main products page
 	http.Redirect(w, r, "/brands/all", http.StatusSeeOther)
