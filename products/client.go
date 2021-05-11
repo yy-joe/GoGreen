@@ -461,14 +461,24 @@ func ProdDetail(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	byStatus := r.FormValue("byStatus")
+	var showByStatus bool
+	if byStatus != "" {
+		showByStatus = true
+	}
+
 	templateData := struct {
-		Categories []Category
-		Brands     []Brand
-		Product    Product
+		Categories   []Category
+		Brands       []Brand
+		Product      Product
+		ShowByStatus bool
+		ByStatus     string
 	}{
-		Categories: storedCategories,
-		Brands:     storedBrands,
-		Product:    product,
+		Categories:   storedCategories,
+		Brands:       storedBrands,
+		Product:      product,
+		ShowByStatus: showByStatus,
+		ByStatus:     byStatus,
 	}
 
 	tpl.ExecuteTemplate(w, "prodDetail.gohtml", templateData)

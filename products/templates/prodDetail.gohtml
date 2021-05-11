@@ -78,10 +78,15 @@
 <form method="post" action="/product/delete/{{.Product.ID}}">
     <input type="submit" value="Delete">
 </form>
-<form method="post" action="/products/all">
-    <input type="submit" value="Back To Products">
-</form>
-
+{{if .ShowByStatus}}
+    <form method="post" action="/products/{{.ByStatus}}">
+        <input type="submit" value="Back To {{.ByStatus}} Products">
+    </form>
+{{else}}
+    <form method="post" action="/products/all">
+        <input type="submit" value="Back To Products">
+    </form>
+{{end}}
 
 </body>
 </html>
