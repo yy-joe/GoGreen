@@ -3,26 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <title>Brand Details</title>
+    {{ template "userHeader" }}
+    {{ template "style" }}
 </head>
 <body>
 
-<h2>Brand Details</h2>
-<form method="post" action="/brand/update/{{.ID}}">
-    <label for="name">Brand Name:</label>    
-    <input type="text" name="Name" id="name" value="{{.Name}}" required><br/>
-    <label for="description">Description:</label>
-    <input type="text" name="Description" id="description" value="{{.Description}}" required><br/>
+{{ template "adminNav" }}
 
-    <br/>
+<div class="body">
+    <h2>Brand Details</h2>
+    <br>
+    <form method="post" action="/brand/update/{{.ID}}">
+        <label for="name">Brand Name:</label>    
+        <input type="text" name="Name" id="name" value="{{.Name}}" required><br/>
+        <label for="description">Description:</label>
+        <input type="text" name="Description" id="description" value="{{.Description}}" required><br/>
     
-    <input type="submit" value="Update">
-</form>
-<form method="post" action="/brand/delete/{{.ID}}">
-    <input type="submit" value="Delete">
-</form>
-<form method="post" action="/brands/all">
-    <input type="submit" value="Back To Brands">
-</form>
+        <br/>
+        
+        <input type="submit" class="btn btn-secondary btn-sm" value="Update">
+    </form>
+    <br>
+    <form method="post" action="/brand/delete/{{.ID}}">
+        <input type="submit" class="btn btn-secondary btn-sm" value="Delete">
+    </form>
+    <br>
+    <form method="post" action="/brands/all">
+        <input type="submit" class="btn btn-secondary btn-sm" value="Back To Brands">
+    </form>
+</div>
+
+{{ template "scripts" }}
 
 </body>
 </html>

@@ -3,44 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <title>Product Management Page</title>
+
+    {{ template "userHeader" }}
+    {{ template "style" }}
 </head>
 <body>
-<h1>My Products</h1>
 
-<table>
-<tr>
-    <td><h3><a href="/products/all?sortby=Name">Product Name</a></h3></td>
-    <td><h3>Short Description</h3></td>
-    <td><h3>Long Description</h3></td>
-    <td><h3><a href="/products/all?sortby=DateCreated">Date Added</a></h3></td>
-    <td><h3><a href="/products/all?sortby=DateModified">Date Modified</a></h3></td>
-    <td><h3><a href="/products/all?sortby=Price">Price</a></h3></td>
-    <td><h3><a href="/products/all?sortby=Quantity">Stock</a></h3></td>
-    <td><h3><a href="/products/all?sortby=QuantitySold">Sales</a></h3></td>
-    <td><h3>Condition</h3></td>
-    <td><h3>Category</h3></td>
-    <td><h3>Brand</h3></td>
-    <td><h3>Status</h3></td>
+    {{ template "adminNav" }}
 
-</tr>
-{{range .}} 
-<tr>
-    <td><a href="/product/{{.ID}}">{{.Name}}</a></td>
-    <td>{{.DescShort}}</td>
-    <td>{{.DescLong}}</td>
-    <td>{{.DateCreated}}</td>
-    <td>{{.DateModified}}</td>
-    <td>{{.Price}}</td>
-    <td>{{.Quantity}}</td>
-    <td>{{.QuantitySold}}</td>
-    <td>{{.Condition}}</td>
-    <td>{{.CategoryName}}</td>
-    <td>{{.BrandName}}</td>
-    <td>{{.Status}}</td>
+    <div class="body">
+        <h1>My Products</h1>
+        <br>
+        <table class="table">
+        <tr>
+            <td><h3><a href="/products/all?sortby=Name">Product Name</a></h3></td>
+            <td><h3>Short Description</h3></td>
+            <td><h3>Long Description</h3></td>
+            <td><h3><a href="/products/all?sortby=DateCreated">Date Added</a></h3></td>
+            <td><h3><a href="/products/all?sortby=DateModified">Date Modified</a></h3></td>
+            <td><h3><a href="/products/all?sortby=Price">Price</a></h3></td>
+            <td><h3><a href="/products/all?sortby=Quantity">Stock</a></h3></td>
+            <td><h3><a href="/products/all?sortby=QuantitySold">Sales</a></h3></td>
+            <td><h3>Condition</h3></td>
+            <td><h3>Category</h3></td>
+            <td><h3>Brand</h3></td>
+            <td><h3>Status</h3></td>
+        
+        </tr>
+        {{range .}} 
+        <tr>
+            <td><a href="/product/{{.ID}}">{{.Name}}</a></td>
+            <td>{{.DescShort}}</td>
+            <td>{{.DescLong}}</td>
+            <td>{{.DateCreated}}</td>
+            <td>{{.DateModified}}</td>
+            <td>{{.Price}}</td>
+            <td>{{.Quantity}}</td>
+            <td>{{.QuantitySold}}</td>
+            <td>{{.Condition}}</td>
+            <td>{{.CategoryName}}</td>
+            <td>{{.BrandName}}</td>
+            <td>{{.Status}}</td>
+        
+        </tr>
+        {{end}}
+        </table>
+    </div>
 
-</tr>
-{{end}}
-</table>
+    {{ template "scripts" }}
 
 </body>
 </html>

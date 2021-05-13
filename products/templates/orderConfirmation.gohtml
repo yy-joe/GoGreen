@@ -5,20 +5,23 @@
     <meta charset="UTF-8">
     <title>Order Confirmation</title>
     
-    {{template "FooterStyle"}}
+    {{template "userHead"}}
+    {{template "style"}}
 </head>
 
 <body>
 
-    {{template "userTopBanner"}}
+    {{template "userNav"}}
 
-    <p>Order Successful!</p>
-
-    <form method="post" action="/">
-        <input type="submit" value="Back to Homepage">
-    </form>
+    <div class="body">
+        <p>Order Successful!</p>
+        <br>
+        <form method="post" action="/">
+            <input type="submit" value="Back to Homepage">
+        </form>
+    </div>
 </body>
 
-{{template "userBottomBanner"}}
+{{template "userFooter"}}
 
 </html>

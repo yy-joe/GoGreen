@@ -3,20 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <title>Add Brand</title>
+    {{ template "userHeader" }}
+    {{ template "style" }}
 </head>
 <body>
 
-<h2>Brand Details</h2>
-<form method="post" action="/brand/new">
-    <label for="name">Brand Name:</label>    
-    <input type="text" name="Name" id="name" required><br/>
-    <label for="description">Description:</label>
-    <input type="text" name="Description" id="description" required><br/>
+{{ template "adminNav" }}
 
-    <br/>
-    
-    <input type="submit" value="Add">
-</form>
+<div class="body">
+    <h2>Brand Details</h2>
+    <br>
+    <form method="post" action="/brand/new">
+        <label for="name">Brand Name:</label>    
+        <input type="text" name="Name" id="name" required><br/>
+        <label for="description">Description:</label>
+        <input type="text" name="Description" id="description" required><br/>
+
+        <br/>
+        
+        <input type="submit" class="btn btn-secondary btn-sm" value="Add">
+    </form>
+</div>
+
+{{ template "scripts" }}
 
 </body>
 </html>

@@ -5,23 +5,26 @@
     <meta charset="UTF-8">
     <title>Error</title>
     
-    {{template "FooterStyle"}}
+    {{template "userHeader"}}
+    {{template "style"}}
 </head>
 
 <body>
 
-    {{template "userTopBanner"}}
+    {{template "userNav"}}
 
-    <p>Oops, an error occured!</p>
-
-    <p>{{.ErrorMessage}}</p>
-
-    <form method="post" action="{{.RedirectLink}}">
-        <input type="submit" value="{{.ButtonValue}}">
-    </form>
+    <div class="body">
+        <p>Oops, an error occured!</p>
+    
+        <p>{{.ErrorMessage}}</p>
+    
+        <form method="post" action="{{.RedirectLink}}">
+            <input type="submit" class="btn btn-secondary btn-sm" value="{{.ButtonValue}}">
+        </form>
+    </div>
 
 </body>
 
-{{template "userBottomBanner"}}
+{{template "userFooter"}}
 
 </html>
