@@ -172,7 +172,7 @@ func deleteCategory(db *sql.DB, ID int) error {
 }
 
 func getProducts(db *sql.DB) ([]Product, error) {
-	results, err := db.Query("SELECT * FROM GoGreen.Products ORDER BY Date_Modified DESC")
+	results, err := db.Query("SELECT * FROM GoGreen.Products ORDER BY ID DESC")
 	var products []Product
 
 	if err != nil {

@@ -5,32 +5,40 @@ import (
 	"net/smtp"
 )
 
-func sendMail() {
+// smtpServer data to smtp server.
+type smtpServer struct {
+	host string
+	port string
+}
 
+// Address URI to smtp server.
+func (s *smtpServer) Address() string {
+	return s.host + ":" + s.port
+}
+
+func sendMail(message []byte) {
 	// Sender data.
-	from := "from@gmail.com"
-	password := "<Email Password>"
+	from := "the.yenny@gmail.com"
+	password := "forever4199Y"
 
 	// Receiver email address.
-	to := []string{
-		"sender@example.com",
-	}
+	to := []string{"yenyenjoe@yahoo.com.sg", "the.yenny@gmail.com"}
 
 	// smtp server configuration.
-	smtpHost := "smtp.gmail.com"
-	smtpPort := "587"
+	smtpServer := smtpServer{host: "smtp.gmail.com", port: "587"}
 
-	// Message.
-	message := []byte("This is a test email message.")
+	// // Message.
+	// message = []byte("This is a really unimaginative message, I know.")
 
 	// Authentication.
-	auth := smtp.PlainAuth("", from, password, smtpHost)
+	auth := smtp.PlainAuth("", from, password, smtpServer.host)
 
 	// Sending email.
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+	err := smtp.SendMail(smtpServer.Address(), auth, from, to, message)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Failed sending email", err)
 		return
 	}
-	fmt.Println("Email Sent Successfully!")
+
+	fmt.Println("Email Sent!")
 }

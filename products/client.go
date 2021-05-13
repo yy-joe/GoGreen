@@ -40,6 +40,11 @@ func ProdMain(w http.ResponseWriter, r *http.Request) {
 	// 		return
 	// 	}
 	// }
+	//check if global vars are initialized.
+
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -242,6 +247,11 @@ func ProdAdd(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
+	//check if global vars are initialized.
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
+
 	if r.Method == http.MethodPost {
 		fmt.Println("prodAdd: processing submitted form...")
 		//add the new product to the database
@@ -281,7 +291,7 @@ func ProdAdd(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		//update global var storedProducts
+		//update global vars
 		reqBody, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			fmt.Printf("Error reading response body: %s\n", err)
@@ -293,8 +303,16 @@ func ProdAdd(w http.ResponseWriter, r *http.Request) {
 			storedProducts = append(storedProducts, newProduct)
 		}
 		mutex.Unlock()
-		// fmt.Println("Updated storedProducts :", storedProducts)
 
+		//update sorted product list
+		mutex.Lock()
+		{
+			productsByPrice = mergeSort(storedProducts, "Price")
+			productsByQuantity = mergeSort(storedProducts, "Quantity")
+		}
+		mutex.Unlock()
+
+		// fmt.Println("Updated storedProducts :", storedProducts)
 		//direct user back to the main products page
 		http.Redirect(w, r, "/products/all", http.StatusSeeOther)
 		return
@@ -435,6 +453,11 @@ func ProdDetail(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
+	//check if global vars are initialized.
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
+
 	params := mux.Vars(r)
 	id := params["productid"]
 
@@ -496,6 +519,12 @@ func ProdDelete(w http.ResponseWriter, r *http.Request) {
 			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
 		}
 	}()
+
+	//check if global vars are initialized.
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
+
 	params := mux.Vars(r)
 	productID := params["productid"]
 	prodIntID, _ := strconv.Atoi(productID)
@@ -560,6 +589,9 @@ func clientGetCategories() (categories []Category, err error) {
 }
 
 func CatMain(w http.ResponseWriter, r *http.Request) {
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
 	categories, err := clientGetCategories()
 	if err != nil {
 		errData := ErrorTplData{
@@ -623,6 +655,12 @@ func CatAdd(w http.ResponseWriter, r *http.Request) {
 			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
 		}
 	}()
+
+	//check if global vars are initialized.
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
+
 	if r.Method == http.MethodPost {
 
 		newCategory := Category{
@@ -677,6 +715,11 @@ func CatUpdate(w http.ResponseWriter, r *http.Request) {
 			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
 		}
 	}()
+
+	//check if global vars are initialized.
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
 
 	params := mux.Vars(r)
 	catID := params["categoryid"]
@@ -753,6 +796,11 @@ func CatDelete(w http.ResponseWriter, r *http.Request) {
 			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
 		}
 	}()
+
+	//check if global vars are initialized.
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
 
 	params := mux.Vars(r)
 	catID := params["categoryid"]
@@ -840,6 +888,9 @@ func clientGetBrands() (brands []Brand, err error) {
 }
 
 func BrandMain(w http.ResponseWriter, r *http.Request) {
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
 	tpl.ExecuteTemplate(w, "brandMain.gohtml", storedBrands)
 }
 
@@ -854,6 +905,12 @@ func BrandDetail(w http.ResponseWriter, r *http.Request) {
 			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
 		}
 	}()
+
+	//check if global vars are initialized.
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
+
 	params := mux.Vars(r)
 	brandID := params["brandid"]
 
@@ -892,6 +949,11 @@ func BrandAdd(w http.ResponseWriter, r *http.Request) {
 			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
 		}
 	}()
+
+	//check if global vars are initialized.
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
 
 	if r.Method == http.MethodPost {
 
@@ -947,6 +1009,11 @@ func BrandUpdate(w http.ResponseWriter, r *http.Request) {
 			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
 		}
 	}()
+
+	//check if global vars are initialized.
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
 
 	params := mux.Vars(r)
 	brandID := params["brandid"]
@@ -1025,6 +1092,11 @@ func BrandDelete(w http.ResponseWriter, r *http.Request) {
 			tpl.ExecuteTemplate(w, "errorPage.gohtml", errData)
 		}
 	}()
+
+	//check if global vars are initialized.
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
 
 	params := mux.Vars(r)
 	brandID := params["brandid"]

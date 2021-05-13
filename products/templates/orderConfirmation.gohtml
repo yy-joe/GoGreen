@@ -5,16 +5,51 @@
     <meta charset="UTF-8">
     <title>Order Confirmation</title>
     
-    {{template "userHead"}}
+    {{template "userHeader"}}
     {{template "style"}}
 </head>
 
 <body>
-
     {{template "userNav"}}
 
     <div class="body">
-        <p>Order Successful!</p>
+    {{if .CartIsEmpty }}
+        <p>Cart is empty!</p>
+    {{else}}
+        <h2 text-align="center">Thank you for your purchase!</h2>
+
+        <div class="body">
+            <h2>Your Receipt</h2>
+            <br>
+            <table class="table">
+            <tr>
+                <td><h3>Product Name</h3></td>
+                <td><h3>Quantity</h3></td>
+                <td><h3>Price</h3></td>
+                <td><h3>Total</h3></td>
+        
+            </tr>
+            {{range $index, $element := .CartData}} 
+            <tr>
+                <td><a href="/{{.ID}}">{{.Name}}</a></td>
+                <td>{{.QuantityToBuy}}</td>
+                <td>${{.Price}}</td>
+                <td>${{.ItemTotal}}</td>
+            </tr>
+            {{end}}
+        
+            <tr>
+            <td>Total for this order:</td>
+            <td></td>
+            <td></td>
+            <td>${{.CartTotal}}</td>
+            </tr>
+            </table>
+        
+            <br>
+        </div>
+
+    {{end}}
         <br>
         <form method="post" action="/">
             <input type="submit" value="Back to Homepage">

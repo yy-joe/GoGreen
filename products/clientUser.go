@@ -64,7 +64,10 @@ func initGlobalVars() {
 // const baseURL = "http://localhost:5000/api/v1/admin/"
 
 func UserSearch(w http.ResponseWriter, r *http.Request) {
-	//initGlobalVars()
+	//check if global vars are initialized.
+	if len(storedProducts) == 0 {
+		initGlobalVars()
+	}
 
 	type templateData struct {
 		Products   []prodTpl
@@ -278,6 +281,29 @@ func Cart(w http.ResponseWriter, r *http.Request) {
 		shopMap[sessionID] = userCart
 
 	} else if r.Method == http.MethodPost && r.FormValue("submit") == "Checkout" {
+		fmt.Println("Checking out.........")
+		type cartItemWithPrice struct {
+			ID            int
+			Name          string
+			Price         float64
+			QuantityToBuy int
+			ItemTotal     float64
+		}
+		type templateStruct struct {
+			CartData    []cartItemWithPrice
+			CartTotal   float64
+			CartIsEmpty bool
+		}
+
+		var emptyCart bool
+		if len(userCart) == 0 {
+			emptyCart = true
+			//load template
+			tplData := templateStruct{[]cartItemWithPrice{}, 0, emptyCart}
+			tpl.ExecuteTemplate(w, "orderConfirmation.gohtml", tplData)
+			return
+		}
+
 		jsonValue, err := json.Marshal(userCart)
 
 		if err != nil {
@@ -304,59 +330,22 @@ func Cart(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// type UserInfo struct {
-		// 	ID          string `json:"id"`
-		// 	Username    string `json:"username" validate:"required"`
-		// 	Password    []byte `json:"password" validate:"required"`
-		// 	Name        string `json:"name" validate:"required"`
-		// 	Role        string `json:"role" validate:"required"`
-		// 	Email       string `json:"email" validate:"required"`
-		// 	Address     string `json:"address"`
-		// 	Contact     int    `json:"contact"`
-		// 	Date_Joined string `json:"date_joined"`
-		// }
+		//print out the invoice
+		cartWithPrice := []cartItemWithPrice{}
+		var cartTotal float64
+		for _, v := range userCart {
+			itemTotal := v.Price * float64(v.QuantityToBuy)
+			cartTotal += itemTotal
+			cartWithPrice = append(cartWithPrice, cartItemWithPrice{v.ID, v.Name, v.Price, v.QuantityToBuy, itemTotal})
+		}
+		tplData := templateStruct{cartWithPrice, cartTotal, emptyCart}
 
-		// var mapUsers map[string]data.User
-		// var mapUsers map[string]data.User
-
-		//get userID from session map
-		// 	myCookie, err := r.Cookie("myCookie")
-		// if err != nil {
-		// 	id, _ := uuid.NewV4()
-		// 	myCookie = &http.Cookie{
-		// 		Name:     "myCookie",
-		// 		Value:    id.String(),
-		// 		HttpOnly: true,
-		// 	}
-
-		// }
-		// http.SetCookie(w, myCookie)
-
-		// // if the user exists already, get user
-		// var user UserInfo
-		// if username, ok := mapSessions[myCookie.Value]; ok {
-		// 	user = jsonMap[username]
-		// }
-
-		// //Create customer order and product order entries
-
-		// jsonValue, err := json.Marshal(userCart)
-		// if err != nil {
-		// 	log.Fatalln(err)
-		// }
-
-		// url := baseURL + "enquiry"
-		// res, err := client.Post(url, "application/json", bytes.NewBuffer(jsonValue))
-		// if err != nil {
-		// 	log.Fatalln(err)
-		// }
-
-		// if res.StatusCode != 200 {
-		// 	return
-		// }
+		//empty the cart
+		var emptiedCart shopCart
+		shopMap[sessionID] = emptiedCart
 
 		// execute order confirmation page
-		tpl.ExecuteTemplate(w, "orderConfirmation.gohtml", nil)
+		tpl.ExecuteTemplate(w, "orderConfirmation.gohtml", tplData)
 		return
 	}
 
@@ -416,6 +405,15 @@ func Enquiry(w http.ResponseWriter, r *http.Request) {
 		if res.StatusCode != 200 {
 			return
 		}
+		adminEmail := "yenyenjoe@yahoo.com.sg"
+		msg := []byte("To: " + adminEmail + "\r\n" +
+			"Subject: Enquiry on GoGreen from " + enquiry.Name + "\r\n" +
+			"\r\n" +
+			enquiry.Message + "\r\n Contact email: " + enquiry.Email +
+			"\r\n")
+
+		sendMail(msg)
+
 		// execute order confirmation page
 		tpl.ExecuteTemplate(w, "enquiryConfirmation.gohtml", nil)
 		return

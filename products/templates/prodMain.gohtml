@@ -27,7 +27,20 @@
             <td><h3>Condition</h3></td>
             <td><h3>Category</h3></td>
             <td><h3>Brand</h3></td>
-            <td><h3>Status</h3></td>
+            
+            <td>     
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <h3>Status</h3> 
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="/products/all">All</a>
+                        <a class="dropdown-item" href="/products/active">Active</a>
+                        <a class="dropdown-item" href="/products/unlisted">Unlisted</a>
+                        <a class="dropdown-item" href="/products/soldout">Sold Out</a>
+                    </div>
+                </div>
+            </td>
         
         </tr>
         {{range .}} 

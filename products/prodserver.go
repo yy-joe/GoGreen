@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -32,8 +33,12 @@ func openDB() (db *sql.DB, err error) {
 		}
 	}()
 
+	password := os.Getenv("DBPASSWORD")
+	portNo := os.Getenv("DBPORTNO")
+
 	//Use mysql as driverName and the default mysql db as data source name
-	dsn := "root:password@tcp(127.0.0.1:3306)/GoGreen"
+	dsn := "root:" + password + "@tcp(127.0.0.1:" + portNo + ")/GoGreen"
+	fmt.Println("dsn = ", dsn)
 	db, err = sql.Open("mysql", dsn)
 	if err != nil {
 		Trace.Fatalln(err.Error())
@@ -596,11 +601,22 @@ func UpdateProdQty(w http.ResponseWriter, r *http.Request) {
 			updatedQuantity := product.Quantity - v.QuantityToBuy
 			updatedQuantitySold := product.QuantitySold + v.QuantityToBuy
 
-			fmt.Println(updatedQuantity)
-			fmt.Println(updatedQuantitySold)
+			// fmt.Println(updatedQuantity)
+			// fmt.Println(updatedQuantitySold)
+			if updatedQuantity == 0 {
+				product.Status = "soldout"
+			}
+			product.Quantity = updatedQuantity
+			product.QuantitySold = updatedQuantitySold
+			err = editProducts(db, product.Name, product.Image, product.DescShort, product.DescLong, product.DateModified, product.Price, product.Quantity, product.Condition, product.CategoryID, product.BrandID, product.Status, product.ID)
+			if err != nil {
+				Trace.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("500 -Error updating product at database."))
+				return
+			}
 
 			err = editProductQuantity(db, updatedQuantity, updatedQuantitySold, v.ID)
-
 			if err != nil {
 				Trace.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
