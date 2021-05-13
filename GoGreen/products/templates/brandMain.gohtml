@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Brand Management Page</title>
+    {{ template "userHeader" }}
+    {{ template "style" }}
+</head>
+<body>
+
+{{ template "adminNav" }}
+
+<div class="body">
+    <h1>Brands</h1>
+    <br>
+    <table class="table">
+    <tr>
+        <td><h3>Name</h3></td>
+        <td><h3>Description</h3></td>
+    </tr>
+    {{range .}} 
+    <tr>
+        <td><a href="/brand/{{.ID}}">{{.Name}}</a></td>
+        <td>{{.Description}}</td>
+    </tr>
+    {{end}}
+    </table>
+</div>
+
+{{ template "scripts" }}
+
+</body>
+</html>

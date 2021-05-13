@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Category</title>
+    
+    {{template "userHeader"}}
+    {{template "style"}}
+</head>
+<body>
+
+    {{template "userNav"}}
+
+    <div class="body">
+        <h2>Contact Us</h2>
+        <br>
+        <form method="post" action="">
+            <label for="name">Name:</label>    
+            <input type="text" name="Name" id="name" required><br/>
+            <label for="email">Email Address:</label>    
+            <input type="email" name="Email" id="email" required><br/>
+            <label for="message">Message:</label>
+            <textarea name="Message" id="message" rows="4" cols="50" placeholder="Enter your enquiry here..." required></textarea><br/>
+            <input type="submit" class="btn btn-secondary btn-sm" value="Submit">
+        </form>
+    </div>
+
+</body>
+
+{{template "userFooter"}}
+
+</html>

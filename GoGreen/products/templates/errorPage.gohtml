@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Error</title>
+    
+    {{template "userHeader"}}
+    {{template "style"}}
+</head>
+
+<body>
+
+    {{template "userNav"}}
+
+    <div class="body">
+        <p>Oops, an error occured!</p>
+    
+        <p>{{.ErrorMessage}}</p>
+    
+        <form method="post" action="{{.RedirectLink}}">
+            <input type="submit" class="btn btn-secondary btn-sm" value="{{.ButtonValue}}">
+        </form>
+    </div>
+
+</body>
+
+{{template "userFooter"}}
+
+</html>

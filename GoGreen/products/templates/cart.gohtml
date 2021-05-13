@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GoGreen</title>
+
+    {{template "userHeader"}}
+    {{template "style"}}
+</head>
+<body>
+
+    {{template "userNav"}}
+
+    <div class="body">
+        <h1>Shopping Cart</h1>
+        <br>
+        <table class="table">
+        <tr>
+            <td><h3>Product Name</h3></td>
+            <td><h3>Quantity</h3></td>
+            <td><h3>Price</h3></td>
+            <td><h3>Total</h3></td>
+    
+        </tr>
+        {{range $index, $element := .CartData}} 
+        <tr>
+            <td><a href="/{{.ID}}">{{.Name}}</a></td>
+            <td>{{.QuantityToBuy}}</td>
+            <td>${{.Price}}</td>
+            <td>${{.ItemTotal}}</td>
+            <td>
+                <form method="post">
+                    <input type="hidden" name="cartIndex" value="{{$index}}">
+                    <input type="submit" name="submit" class="btn btn-secondary btn-sm" value="Remove From Cart">
+                </form>
+            </td>
+        </tr>
+        {{end}}
+    
+        <tr>
+        <td>Total for this order:</td>
+        <td></td>
+        <td></td>
+        <td>${{.CartTotal}}</td>
+        </tr>
+        </table>
+    
+        <br>
+    
+        <form method="post">
+        <input type="submit" name="submit" class="btn btn-secondary btn-sm" value="Checkout">
+        </form>
+        <br>
+        <form method="post" action="/">
+        <input type="submit" name="submit" class="btn btn-secondary btn-sm" value="Back">
+        </form>
+    </div>
+
+</body>
+
+{{template "userFooter"}}
+
+</html>

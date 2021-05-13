@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.Product.Name}}</title>
+    {{ template "userHeader" }}
+    {{ template "style" }}
+</head>
+<body>
+
+    {{ template "userNav" }}
+
+    <div class="body">
+        <h2>Product Details</h2>
+        <br>
+        <p>Name: {{.Product.Name}}</p>
+        <p>Short Description: {{.Product.DescShort}}</p>
+        <p>Long Description: {{.Product.DescLong}}</p>
+        <p>Price: {{.Product.Price}}</p>
+        <p>Quantity: {{.Product.Quantity}}</p>
+        <p>Category: {{.CategoryName}}</p>
+        <p>Brand: {{.BrandName}}</p>
+    
+        <form method="post" action="">
+            <label  for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantityToBuy" min="1" max="{{.Product.Quantity}}" required value="0"><br>
+    
+            <input type="hidden" name="productid" value="{{.Product.ID}}"><br>
+            <input type="hidden" name="productname" value="{{.Product.Name}}"><br>
+            <input type="hidden" name="productprice" value="{{.Product.Price}}"><br>  
+            <input type="submit" name="submit" class="btn btn-secondary btn-sm" value="Add To Cart">  {{if .AddedToCart}} {{.AddedToCartMsg}} {{end}}
+        </form>
+        <br>
+        <form method="post" action="/">
+            <input type="submit" name="submit" class="btn btn-secondary btn-sm" value="Return to Main">
+        </form>
+    </div>
+
+</body>
+
+{{ template "userFooter" }}
+
+</html>

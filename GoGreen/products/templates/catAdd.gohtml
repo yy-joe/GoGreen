@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Category</title>
+    {{ template "userHeader" }}
+    {{ template "style" }}
+</head>
+<body>
+
+{{ template "adminNav" }}
+
+<div class="body">
+    <h2>Category Details</h2>
+    <br>
+    <form method="post" action="/category/new">
+        <label for="name">Category Name:</label>    
+        <input type="text" name="Name" id="name" required><br/>
+        <label for="description">Description:</label>
+        <input type="text" name="Description" id="description" required><br/>
+    
+        <br/>
+        
+        <input type="submit" class="btn btn-secondary btn-sm" value="Add">
+    </form>
+</div>
+
+{{ template "scripts" }}
+
+</body>
+</html>
