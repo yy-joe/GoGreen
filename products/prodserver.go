@@ -28,7 +28,7 @@ func openDB() (db *sql.DB, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = r.(error)
-			Trace.Println("Panic trapped: ", err)
+			fmt.Println("Panic trapped: ", err)
 			return
 		}
 	}()
@@ -52,7 +52,7 @@ func GetActiveProducts(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		w.Write([]byte("503 - Error opening the product database."))
-		Trace.Println("Failed to open the product database.")
+		fmt.Println("Failed to open the product database.")
 		return
 	}
 	defer db.Close()
@@ -60,7 +60,7 @@ func GetActiveProducts(w http.ResponseWriter, r *http.Request) {
 
 	products, err := getProductsByStatus(db, "active")
 	if err != nil {
-		Trace.Println(err)
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 -Error getting products from database."))
 		return
@@ -82,7 +82,7 @@ func GetSoldoutProducts(w http.ResponseWriter, r *http.Request) {
 
 	products, err := getProductsByStatus(db, "soldout")
 	if err != nil {
-		Trace.Println(err)
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 -Error getting products from database."))
 		return
@@ -104,7 +104,7 @@ func GetUnlistedProducts(w http.ResponseWriter, r *http.Request) {
 
 	products, err := getProductsByStatus(db, "unlisted")
 	if err != nil {
-		Trace.Println(err)
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 -Error getting products from database."))
 		return
@@ -144,7 +144,7 @@ func ServerEnquiry(w http.ResponseWriter, r *http.Request) {
 		err := enquiry(db, enquiryData.Name, enquiryData.Email, time.Now().Format("2006-01-02"), enquiryData.Message)
 
 		if err != nil {
-			Trace.Println(err)
+			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 -Error updating enquiry at database."))
 			return
@@ -168,7 +168,7 @@ func Allproducts(w http.ResponseWriter, r *http.Request) {
 
 	products, err := getProducts(db)
 	if err != nil {
-		Trace.Println(err)
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 -Error getting products from database."))
 		return
@@ -194,7 +194,7 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		if product, err := getProduct(db, params["productid"]); err != nil { //check if productid exists in the database
-			Trace.Println(err)
+			fmt.Println(err)
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte("404 - No product found."))
 		} else {
@@ -205,7 +205,7 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 		productID, _ := strconv.Atoi(params["productid"])
 		err := deleteProducts(db, productID)
 		if err != nil {
-			Trace.Println(err)
+			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 -Error deleting product from database."))
 			return
@@ -231,7 +231,7 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 			//check if product exists; add only if product does not exist
 			newProduct.ID, err = addProducts(db, newProduct.Name, newProduct.Image, newProduct.DescShort, newProduct.DescLong, newProduct.DateCreated, newProduct.DateModified, newProduct.Price, newProduct.Quantity, newProduct.Condition, newProduct.CategoryID, newProduct.BrandID, newProduct.Status)
 			if err != nil {
-				Trace.Println(err)
+				fmt.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("500 -Error updating product at database."))
 				return
@@ -259,7 +259,7 @@ func ProductCRUD(w http.ResponseWriter, r *http.Request) {
 		err = editProducts(db, updatedProduct.Name, updatedProduct.Image, updatedProduct.DescShort, updatedProduct.DescLong, updatedProduct.DateModified, updatedProduct.Price, updatedProduct.Quantity, updatedProduct.Condition, updatedProduct.CategoryID, updatedProduct.BrandID, updatedProduct.Status, productID)
 
 		if err != nil {
-			Trace.Println(err)
+			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 -Error updating product at database."))
 			return
@@ -280,7 +280,7 @@ func AllBrands(w http.ResponseWriter, r *http.Request) {
 
 	brands, err := getBrands(db)
 	if err != nil {
-		Trace.Println(err)
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 -Error getting products from database."))
 		return
@@ -305,7 +305,7 @@ func ServerGetBrand(w http.ResponseWriter, r *http.Request) {
 	brand, err := getBrand(db, params["brandid"])
 
 	if err != nil {
-		Trace.Println(err)
+		fmt.Println(err)
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("404 - No brand found."))
 	}
@@ -341,7 +341,7 @@ func ServerAddBrand(w http.ResponseWriter, r *http.Request) {
 		newBrand.ID, err = addBrand(db, newBrand.Name, newBrand.Description)
 
 		if err != nil {
-			Trace.Println(err)
+			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 -Error updating product at database."))
 			return
@@ -381,7 +381,7 @@ func ServerEditBrand(w http.ResponseWriter, r *http.Request) {
 		err = editBrand(db, updatedBrand.Name, updatedBrand.Description, brandID)
 
 		if err != nil {
-			Trace.Println(err)
+			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 -Error updating brand at database."))
 			return
@@ -408,7 +408,7 @@ func ServerDeleteBrand(w http.ResponseWriter, r *http.Request) {
 	err = deleteBrand(db, brandID)
 
 	if err != nil {
-		Trace.Println(err)
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 -Error deleting brand from database."))
 		return
@@ -428,7 +428,7 @@ func AllCategories(w http.ResponseWriter, r *http.Request) {
 
 	categories, err := getCategories(db)
 	if err != nil {
-		Trace.Println(err)
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 -Error getting categories from database."))
 		return
@@ -453,7 +453,7 @@ func ServerGetCategory(w http.ResponseWriter, r *http.Request) {
 	category, err := getCategory(db, params["categoryid"])
 
 	if err != nil {
-		Trace.Println(err)
+		fmt.Println(err)
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("404 - No category found."))
 	}
@@ -478,7 +478,7 @@ func ServerAddCategory(w http.ResponseWriter, r *http.Request) {
 	reqBody, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
-		Trace.Println(err)
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 -Error adding category at database."))
 		return
@@ -488,7 +488,7 @@ func ServerAddCategory(w http.ResponseWriter, r *http.Request) {
 		newCategory.ID, err = addCategory(db, newCategory.Name, newCategory.Description)
 
 		if err != nil {
-			Trace.Println(err)
+			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 -Error updating product at database."))
 			return
@@ -526,7 +526,7 @@ func ServerEditCategory(w http.ResponseWriter, r *http.Request) {
 		err = editCategory(db, updatedCategory.Name, updatedCategory.Description, catID)
 
 		if err != nil {
-			Trace.Println(err)
+			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 -Error updating category at database."))
 			return
@@ -551,7 +551,7 @@ func ServerDeleteCategory(w http.ResponseWriter, r *http.Request) {
 	err = deleteCategory(db, categoryID)
 
 	if err != nil {
-		Trace.Println(err)
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 -Error deleting category from database."))
 		return
@@ -610,7 +610,7 @@ func UpdateProdQty(w http.ResponseWriter, r *http.Request) {
 			product.QuantitySold = updatedQuantitySold
 			err = editProducts(db, product.Name, product.Image, product.DescShort, product.DescLong, product.DateModified, product.Price, product.Quantity, product.Condition, product.CategoryID, product.BrandID, product.Status, product.ID)
 			if err != nil {
-				Trace.Println(err)
+				fmt.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("500 -Error updating product at database."))
 				return
@@ -618,7 +618,7 @@ func UpdateProdQty(w http.ResponseWriter, r *http.Request) {
 
 			err = editProductQuantity(db, updatedQuantity, updatedQuantitySold, v.ID)
 			if err != nil {
-				Trace.Println(err)
+				fmt.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("500 -Error updating product at database."))
 				return

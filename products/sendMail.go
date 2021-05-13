@@ -18,11 +18,11 @@ func (s *smtpServer) Address() string {
 
 func sendMail(message []byte) {
 	// Sender data.
-	from := "the.yenny@gmail.com"
-	password := "forever4199Y"
+	from := "gogreen.golive@gmail.com"
+	password := "GOliverun2"
 
 	// Receiver email address.
-	to := []string{"yenyenjoe@yahoo.com.sg", "the.yenny@gmail.com"}
+	to := []string{"yenyenjoe@yahoo.com.sg", "gogreen.golive@gmail.com"}
 
 	// smtp server configuration.
 	smtpServer := smtpServer{host: "smtp.gmail.com", port: "587"}
