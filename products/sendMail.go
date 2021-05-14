@@ -22,7 +22,7 @@ func sendMail(message []byte) {
 	password := "GOliverun2"
 
 	// Receiver email address.
-	to := []string{"yenyenjoe@yahoo.com.sg", "gogreen.golive@gmail.com"}
+	to := []string{"gogreen.golive@gmail.com"}
 
 	// smtp server configuration.
 	smtpServer := smtpServer{host: "smtp.gmail.com", port: "587"}

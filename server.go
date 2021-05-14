@@ -21,7 +21,6 @@ import (
 )
 
 func init() {
-	handler.TestData()
 	// //folder name
 	// const folderPath = "templates"
 	// tpl = template.Must(template.ParseGlob(folderPath + "/*.html"))

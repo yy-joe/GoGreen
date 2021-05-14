@@ -49,14 +49,6 @@ var jsonMap map[string]UserInfo
 // store cookie session
 var MapSessions = map[string]string{}
 
-func TestData() {
-	users = make(map[string]UserInfo)
-	users["IOT201"] = UserInfo{ID: "0", Username: "nigga", Password: "password", Name: "nigga", Role: "admin", Email: "nigga@gmail.com", Contact: 978787, Date_Joined: convertFormat}
-
-	mapCourse, _ := json.Marshal(users)
-	fmt.Println("Test Data:", string(mapCourse))
-}
-
 // Search Cookie function
 func SetCookie() {
 
